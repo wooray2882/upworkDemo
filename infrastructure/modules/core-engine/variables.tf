@@ -16,6 +16,18 @@ variable "bedrock_model_id" {
   default     = "anthropic.claude-3-haiku-20240307-v1:0"
 }
 
+variable "embedding_model_id" {
+  description = "Bedrock embedding model ID used to populate the S3 Vectors index behind the RAG knowledge base."
+  type        = string
+  default     = "amazon.titan-embed-text-v2:0"
+}
+
+variable "embedding_dimension" {
+  description = "Vector dimension for the S3 Vectors index. Must match the embedding model's output dimension (amazon.titan-embed-text-v2:0 defaults to 1024)."
+  type        = number
+  default     = 1024
+}
+
 variable "log_retention_days" {
   description = "CloudWatch log retention (days) for core-engine resources."
   type        = number

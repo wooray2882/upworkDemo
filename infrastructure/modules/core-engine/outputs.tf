@@ -29,6 +29,16 @@ output "step_functions_exec_role_arn" {
 }
 
 output "rag_data_bucket" {
-  description = "S3 bucket backing the shared Bedrock Knowledge Base."
+  description = "S3 bucket holding the source documents ingested by the RAG knowledge base."
   value       = aws_s3_bucket.rag_data.bucket
+}
+
+output "rag_knowledge_base_id" {
+  description = "ID of the shared Bedrock Knowledge Base. Feature post-process Lambdas can trigger ingestion jobs against this."
+  value       = aws_bedrockagent_knowledge_base.rag.id
+}
+
+output "rag_vector_bucket_arn" {
+  description = "ARN of the S3 Vectors bucket backing the knowledge base (not OpenSearch)."
+  value       = aws_s3vectors_bucket.rag.vector_bucket_arn
 }

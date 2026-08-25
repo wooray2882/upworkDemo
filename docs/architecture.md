@@ -45,12 +45,14 @@ Provisioned once per environment. Shared by every feature:
 - **Step Functions exec role** — shared IAM role; the state machine
   *definition* is per-feature but always follows the same shape:
   `receive input → validate → call AI (Lambda) → parse/store result → respond`.
-- **RAG layer (Bedrock Knowledge Base + S3)** — feature results are written
-  here so the frontend can support conversational follow-up questions
-  ("what did the angriest reviewer say") instead of one-shot JSON only. The
-  vector store backend (S3 Vectors vs. OpenSearch Serverless) is a deliberate
-  open decision — see the `NOTE` in `rag-knowledge-base.tf` — to avoid
-  committing to standing infrastructure cost before it's needed.
+- **RAG layer (Bedrock Knowledge Base + S3 Vectors)** — feature results are
+  written to S3, ingested by a Bedrock Knowledge Base, and embedded into an
+  S3 Vectors index so the frontend can support conversational follow-up
+  questions ("what did the angriest reviewer say") instead of one-shot JSON
+  only. The vector store is **S3 Vectors, not OpenSearch Serverless** —
+  OpenSearch Serverless carries a standing per-hour OCU cost even at rest,
+  which is a poor fit for a demo platform that sits idle between job
+  applications. S3 Vectors has no standing compute cost.
 
 ## Feature module (`infrastructure/modules/feature`)
 
@@ -86,6 +88,7 @@ prompt/parsing change on a copied template), one `module "..." {}` block in
 
 | Decision | Rationale |
 |---|---|
+| S3 Vectors vs. OpenSearch Serverless | S3 Vectors has no standing compute cost (pay for storage/queries only); OpenSearch Serverless bills OCUs even idle. Explicitly excluded from this platform. |
 | One shared API Gateway vs. one per feature | Matches "same deployment pattern" goal; keeps CORS/auth/logging config in one place. |
 | Step Functions Standard vs. sync Express | Feature routes use `StartSyncExecution` (Express-compatible) for request/response latency; long-running features can switch per-instance. |
 | DynamoDB generic schema | Lets the RAG ingestion path and any future cross-feature query be written once instead of per-feature. |

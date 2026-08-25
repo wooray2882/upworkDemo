@@ -11,7 +11,7 @@ and every `feature` module attaches to its outputs.
 | `api-gateway.tf` | Shared HTTP API Gateway + `$default` stage + access logs |
 | `lambda-shared-layer.tf` | Bedrock-call helper Lambda layer, shared Lambda exec IAM role |
 | `step-functions-template.tf` | Shared Step Functions exec IAM role |
-| `rag-knowledge-base.tf` | S3 bucket + IAM role backing the shared Bedrock Knowledge Base |
+| `rag-knowledge-base.tf` | S3 data bucket, S3 Vectors bucket/index, IAM role, and the Bedrock Knowledge Base + data source |
 
 ## Inputs
 
@@ -25,9 +25,11 @@ See [`outputs.tf`](./outputs.tf). Feature modules consume `api_id`,
 
 ## Notes
 
-- The Bedrock Knowledge Base vector store backend is intentionally left as a
-  follow-up (see the `NOTE` in `rag-knowledge-base.tf`) — provider support for
-  `aws_bedrockagent_knowledge_base` should be confirmed against the AWS
-  provider version pinned in `versions.tf` before implementing it.
+- **Vector store: S3 Vectors, not OpenSearch Serverless.** OpenSearch
+  Serverless is deliberately excluded from this platform — it bills a
+  standing per-hour OCU cost even when idle, which doesn't fit a
+  mostly-idle demo platform. S3 Vectors has no standing compute cost; you
+  pay for storage and queries only. Requires AWS provider `>= 5.100`
+  (pinned in `versions.tf`).
 - This module should change rarely. If a change here only benefits one
   feature, it probably belongs in the `feature` module instead.
