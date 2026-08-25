@@ -5,15 +5,33 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-s3-vectors-resource-names`)
+- `terraform validate` (blocked earlier by a full local disk, run once
+  space was freed) caught invented resource/attribute names in the initial
+  S3 Vectors implementation: `aws_s3vectors_bucket` (wrong — the real
+  resource is `aws_s3vectors_vector_bucket`) and passing both
+  `vector_bucket_arn` + `index_arn` into
+  `storage_configuration.s3_vectors_configuration` (the block only accepts
+  `index_arn` alone, or `index_name` + `vector_bucket_arn` — not all
+  three). Corrected in `infrastructure/modules/core-engine/rag-knowledge-base.tf`.
+- Bumped the AWS provider constraint from `>= 5.100, < 6.0` to
+  `>= 6.27, < 7.0` across `core-engine`, `feature`, and the `demo`
+  environment — verified against provider release notes:
+  `aws_s3vectors_*` resources landed in 6.24.0,
+  `storage_configuration.s3_vectors_configuration` support on
+  `aws_bedrockagent_knowledge_base` landed in 6.27.0. AWS provider v6 was
+  checked against the [v6 upgrade guide](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/version-6-upgrade)
+  for breaking changes affecting the other resources in this repo
+  (S3, Lambda, DynamoDB, API Gateway v2, Step Functions, IAM) — none apply.
+
 ### Changed
 - RAG vector store implemented as **S3 Vectors**, explicitly *not*
   OpenSearch Serverless — OpenSearch Serverless was ruled out due to its
   standing per-hour OCU cost. `infrastructure/modules/core-engine/rag-knowledge-base.tf`
-  now provisions `aws_s3vectors_bucket`, `aws_s3vectors_index`, and a real
-  `aws_bedrockagent_knowledge_base` (type `VECTOR`, storage type
+  now provisions `aws_s3vectors_vector_bucket`, `aws_s3vectors_index`, and a
+  real `aws_bedrockagent_knowledge_base` (type `VECTOR`, storage type
   `S3_VECTORS`) with an `aws_bedrockagent_data_source` pointed at the RAG
-  S3 bucket. AWS provider constraint bumped to `>= 5.100, < 6.0`
-  (`aws_s3vectors_*` resources require it).
+  S3 bucket.
 
 ### Added
 - Initial Terraform scaffold: `core-engine` module (API Gateway, shared
@@ -30,8 +48,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `docs/adding-a-feature.md`, module-level `README.md` files.
 
 ### Known gaps
-- Bedrock Knowledge Base vector store backend not yet implemented (documented
-  as an open decision in `infrastructure/modules/core-engine/rag-knowledge-base.tf`).
 - No remote Terraform state backend configured yet (stubbed, commented out,
   in `infrastructure/environments/demo/main.tf`).
 - No frontend/landing pages yet.

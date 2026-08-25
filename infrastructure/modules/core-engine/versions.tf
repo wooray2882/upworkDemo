@@ -4,9 +4,10 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      # >= 5.100 required for aws_s3vectors_* and the S3_VECTORS storage
-      # type on aws_bedrockagent_knowledge_base.
-      version = ">= 5.100, < 6.0"
+      # aws_s3vectors_* resources landed in 6.24.0; storage_configuration.
+      # s3_vectors_configuration on aws_bedrockagent_knowledge_base landed
+      # in 6.27.0 (confirmed against provider release notes).
+      version = ">= 6.27, < 7.0"
     }
     archive = {
       source  = "hashicorp/archive"

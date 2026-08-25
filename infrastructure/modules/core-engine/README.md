@@ -29,7 +29,10 @@ See [`outputs.tf`](./outputs.tf). Feature modules consume `api_id`,
   Serverless is deliberately excluded from this platform — it bills a
   standing per-hour OCU cost even when idle, which doesn't fit a
   mostly-idle demo platform. S3 Vectors has no standing compute cost; you
-  pay for storage and queries only. Requires AWS provider `>= 5.100`
-  (pinned in `versions.tf`).
+  pay for storage and queries only. Requires AWS provider `>= 6.27`
+  (pinned in `versions.tf` — `aws_s3vectors_*` resources landed in 6.24.0,
+  `storage_configuration.s3_vectors_configuration` on
+  `aws_bedrockagent_knowledge_base` landed in 6.27.0; confirmed against
+  provider release notes, not guessed).
 - This module should change rarely. If a change here only benefits one
   feature, it probably belongs in the `feature` module instead.

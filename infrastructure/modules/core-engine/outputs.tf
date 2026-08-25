@@ -40,5 +40,5 @@ output "rag_knowledge_base_id" {
 
 output "rag_vector_bucket_arn" {
   description = "ARN of the S3 Vectors bucket backing the knowledge base (not OpenSearch)."
-  value       = aws_s3vectors_bucket.rag.vector_bucket_arn
+  value       = aws_s3vectors_vector_bucket.rag.vector_bucket_arn
 }

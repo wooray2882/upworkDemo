@@ -22,13 +22,16 @@ resource "aws_s3_bucket_versioning" "rag_data" {
 }
 
 # --- S3 Vectors: the vector store backing the knowledge base ---------------
+# Resource names/attributes per hashicorp/aws provider docs:
+#   https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3vectors_vector_bucket
+#   https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3vectors_index
 
-resource "aws_s3vectors_bucket" "rag" {
+resource "aws_s3vectors_vector_bucket" "rag" {
   vector_bucket_name = "${var.project_name}-${var.environment}-rag-vectors"
 }
 
 resource "aws_s3vectors_index" "rag" {
-  vector_bucket_name = aws_s3vectors_bucket.rag.vector_bucket_name
+  vector_bucket_name = aws_s3vectors_vector_bucket.rag.vector_bucket_name
   index_name         = "${var.project_name}-${var.environment}-rag-index"
   data_type          = "float32"
   dimension          = var.embedding_dimension
@@ -83,7 +86,7 @@ resource "aws_iam_role_policy" "bedrock_kb_s3vectors_access" {
         "s3vectors:GetVectorBucket",
       ]
       Resource = [
-        aws_s3vectors_bucket.rag.vector_bucket_arn,
+        aws_s3vectors_vector_bucket.rag.vector_bucket_arn,
         aws_s3vectors_index.rag.index_arn,
       ]
     }]
@@ -120,8 +123,8 @@ resource "aws_bedrockagent_knowledge_base" "rag" {
   storage_configuration {
     type = "S3_VECTORS"
     s3_vectors_configuration {
-      vector_bucket_arn = aws_s3vectors_bucket.rag.vector_bucket_arn
-      index_arn         = aws_s3vectors_index.rag.index_arn
+      # index_arn alone is sufficient and conflicts with index_name/vector_bucket_arn.
+      index_arn = aws_s3vectors_index.rag.index_arn
     }
   }
 
