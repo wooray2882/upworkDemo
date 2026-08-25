@@ -59,6 +59,11 @@ API Gateway; each feature is reachable at `<api_endpoint>/<feature-name>`.
 
 See [`docs/adding-a-feature.md`](docs/adding-a-feature.md).
 
+## Branching
+
+See [`docs/branching.md`](docs/branching.md) — every new feature gets its
+own `feature/<feature-name>` branch; `main` stays deployable at all times.
+
 ## Scope and guardrails
 
 This is a portfolio/demo platform, not a production system:
