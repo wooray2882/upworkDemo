@@ -5,6 +5,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/analyze-reviews`)
+- `analyze-reviews` feature: prompt template, AI-call and postprocess Lambda
+  handlers, wired into `infrastructure/environments/demo/main.tf`.
+
 ### Changed
 - RAG vector store implemented as **S3 Vectors**, explicitly *not*
   OpenSearch Serverless — OpenSearch Serverless was ruled out due to its
