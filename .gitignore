@@ -1,0 +1,28 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+.terraform.lock.hcl
+
+# Build artifacts
+.build/
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node (frontend, if applicable)
+node_modules/
+.next/
+dist/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
