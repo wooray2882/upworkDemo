@@ -79,9 +79,9 @@ window.BookkeepingView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Bookkeeping & Revenue Tracker</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Bookkeeping Tracker</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
-              AWS Step Functions + Bedrock Knowledge Base RAG pipeline querying DynamoDB bookkeeping records.
+              Automatically extracts and categorizes expenses from uploaded invoices and receipts.
             </p>
           </div>
           <button class="btn-secondary" onclick="BookkeepingView.simulateBatchUpload()">
@@ -100,7 +100,7 @@ window.BookkeepingView = {
             <div class="kpi-value">$${totalExpenses.toFixed(2)}</div>
             <div class="kpi-footer">
               <span class="trend-pill down">${data.length} transactions</span>
-              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "live from DynamoDB" : "loading..."}</span>
+              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "up to date" : "loading..."}</span>
             </div>
           </div>
 
@@ -137,7 +137,7 @@ window.BookkeepingView = {
                 <div class="chart-title">
                   <span>Monthly Expense Trend</span>
                 </div>
-                <div class="chart-subtitle">From real extracted transaction dates/amounts</div>
+                <div class="chart-subtitle">Based on transaction dates and amounts</div>
               </div>
               <div style="display: flex; gap: 16px; font-size: 0.78rem;">
                 <span style="display: flex; align-items: center; gap: 6px; color: var(--accent-danger);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-danger);"></span> Expenses</span>
@@ -152,7 +152,7 @@ window.BookkeepingView = {
             <div class="chart-card-header">
               <div>
                 <div class="chart-title">Category Breakdown</div>
-                <div class="chart-subtitle">Real expense distribution across all records</div>
+                <div class="chart-subtitle">Expense distribution across all records</div>
               </div>
             </div>
             <div id="category-donut-container" class="chart-container"></div>
@@ -164,7 +164,7 @@ window.BookkeepingView = {
           <div class="table-controls">
             <div class="search-input-wrapper">
               <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input type="text" id="txn-search" class="search-input" placeholder="Search vendor, category, or ID (e.g. AWS, SaaS, TXN-9027)..." oninput="BookkeepingView.filterData()">
+              <input type="text" id="txn-search" class="search-input" placeholder="Search vendor, category, or ID (e.g. Acme Corp, Software, TXN-9027)..." oninput="BookkeepingView.filterData()">
             </div>
             
             <div class="filter-group">
@@ -185,7 +185,7 @@ window.BookkeepingView = {
           <div id="bookkeeping-table-container"></div>
 
           <div class="table-footer">
-            <span>Showing <strong id="visible-count">${data.length}</strong> of ${data.length} records in DynamoDB</span>
+            <span>Showing <strong id="visible-count">${data.length}</strong> of ${data.length} records</span>
             <div class="pagination-buttons">
               <button class="page-btn" disabled>Previous</button>
               <button class="page-btn" disabled>Next</button>
@@ -243,14 +243,14 @@ window.BookkeepingView = {
   },
 
   simulateBatchUpload: async () => {
-    App.showToast("Sending transaction batch to /bookkeeping-query...");
+    App.showToast("Processing transaction batch...");
     const allData = MockAPI.getBookkeepingData();
     const transactionsText = allData
       .map(t => `${t.vendor} - $${t.amount.toFixed(2)} - ${t.date} - ${t.category}`)
       .join("\n");
     try {
       const result = await RealAPI.queryBookkeeping(transactionsText);
-      App.showToast(`Step Function Succeeded! ${result.output.structured_result.transaction_count} transactions parsed via AWS Bedrock.`);
+      App.showToast(`Done! ${result.output.structured_result.transaction_count} transactions categorized.`);
       App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
       // Refresh from DynamoDB so the new batch shows up immediately instead
       // of only after a full page reload.

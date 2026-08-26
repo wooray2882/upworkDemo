@@ -5,6 +5,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/business-friendly-ui-copy`)
+- The audience for this app is a business user (HR, ops, a manager) - not
+  a developer - so two things were fixed:
+  - `document-extract.js`: extraction results were shown as raw syntax-
+    highlighted JSON. Replaced with a plain label/value rendering
+    (`renderHumanSummary`/`renderFieldRows`/`renderFieldValue`) - snake_case
+    keys become "Title Case" labels (with a small acronym list so "it"/"id"
+    render as "IT"/"ID"), nested objects become sub-sections, arrays of
+    objects become simple cards. No JSON syntax anywhere in this view now.
+  - Removed every AWS/AI/infrastructure-jargon mention from user-facing
+    copy across the whole app: page title, header brand name/tagline,
+    status badge, the "Inspect AWS Payload" button and its drawer, the
+    chat assistant's name/subtitle/placeholder/welcome message, and every
+    view's heading/subtitle/toast text (e.g. "Route: /analyze-reviews —
+    ... via AWS Bedrock" → "Automatically scores customer sentiment...").
+    Verified nothing remains via a repo-wide grep for AWS/Bedrock/
+    Terraform/Step Function/DynamoDB/Lambda/AI/JSON Schema across all
+    user-facing files - the only remaining hits are code comments, not
+    displayed text.
+  - The one exception left alone on purpose: the "View Activity Log"
+    drawer's *content* (request/response/execution details) stays
+    technical - it's an explicit opt-in panel, not primary UI copy.
+
 ### Added (branch: `core/wire-rag-chat-to-knowledge-base`)
 - The Bedrock Knowledge Base (S3 Vectors-backed) was provisioned but had
   never been populated - closed that gap: exported all 18 real DynamoDB
