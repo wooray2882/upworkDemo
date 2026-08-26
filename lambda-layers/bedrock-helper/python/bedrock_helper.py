@@ -14,9 +14,12 @@ MAX_RETRIES = 3
 BACKOFF_SECONDS = 1.5
 
 
-def load_prompt(path: str, **kwargs) -> str:
-    with open(path, "r", encoding="utf-8") as f:
-        template = f.read()
+def render_prompt(template: str, **kwargs) -> str:
+    """Fills {{placeholder}} tokens in a prompt template string. Feature
+    Lambdas get the template text via the PROMPT_TEXT env var (baked in at
+    terraform apply time, see modules/feature/lambda.tf) rather than reading
+    a file at runtime — the prompts/ directory is a local, Terraform-side
+    path and does not exist inside the deployed Lambda package."""
     for key, value in kwargs.items():
         template = template.replace(f"{{{{{key}}}}}", str(value))
     return template

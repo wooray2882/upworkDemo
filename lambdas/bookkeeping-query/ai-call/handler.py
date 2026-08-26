@@ -10,16 +10,16 @@ tracker").
 import json
 import os
 
-from bedrock_helper import invoke_model, load_prompt
+from bedrock_helper import invoke_model, render_prompt
 
-PROMPT_PATH = os.environ["PROMPT_PATH"]
+PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body") or "{}")
     transactions_text = body.get("transactions_text", "")
 
-    prompt = load_prompt(PROMPT_PATH, transactions_text=transactions_text)
+    prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
     result = invoke_model(prompt)
 
     return {

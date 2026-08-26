@@ -1,22 +1,23 @@
 """AI-call Lambda for the extract-document feature.
 
-Reads the prompt template named by PROMPT_PATH, fills in the request input,
-and calls Bedrock via the shared bedrock_helper layer. Returns the raw model
-JSON response for the next state (StoreResult) to persist.
+Fills the prompt template (baked in via the PROMPT_TEXT env var, see
+modules/feature/lambda.tf) with the request input, and calls Bedrock via
+the shared bedrock_helper layer. Returns the raw model JSON response for
+the next state (StoreResult) to persist.
 """
 import json
 import os
 
-from bedrock_helper import invoke_model, load_prompt
+from bedrock_helper import invoke_model, render_prompt
 
-PROMPT_PATH = os.environ["PROMPT_PATH"]
+PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body") or "{}")
     document_text = body.get("document_text", "")
 
-    prompt = load_prompt(PROMPT_PATH, document_text=document_text)
+    prompt = render_prompt(PROMPT_TEXT, document_text=document_text)
     result = invoke_model(prompt)
 
     return {

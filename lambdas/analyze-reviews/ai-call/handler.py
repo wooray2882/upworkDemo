@@ -7,16 +7,16 @@ result for the next state (StoreResult) to persist.
 import json
 import os
 
-from bedrock_helper import invoke_model, load_prompt
+from bedrock_helper import invoke_model, render_prompt
 
-PROMPT_PATH = os.environ["PROMPT_PATH"]
+PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 
 
 def lambda_handler(event, context):
     body = json.loads(event.get("body") or "{}")
     reviews_text = body.get("reviews_text", "")
 
-    prompt = load_prompt(PROMPT_PATH, reviews_text=reviews_text)
+    prompt = render_prompt(PROMPT_TEXT, reviews_text=reviews_text)
     result = invoke_model(prompt)
 
     return {
