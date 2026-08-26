@@ -5,6 +5,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/analyze-reviews`)
+- `analyze-reviews` feature: prompt template, AI-call and postprocess Lambda
+  handlers, wired into `infrastructure/environments/demo/main.tf`.
+
 ### Fixed (branch: `core/fix-s3-vectors-resource-names`)
 - `terraform validate` (blocked earlier by a full local disk, run once
   space was freed) caught invented resource/attribute names in the initial
