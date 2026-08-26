@@ -183,9 +183,17 @@ window.BookkeepingView = {
   },
 
   simulateBatchUpload: async () => {
-    App.showToast("Uploading synthetic receipts batch to S3 bucket...");
-    const result = await MockAPI.executeStepFunction("bookkeeping-ingest", [{ file: "march_receipts.zip" }]);
-    App.showToast(`Step Function Succeeded! ${result.output.processedCount} files parsed via AWS Bedrock.`);
-    App.logApiExecution("POST /bookkeeping-query", { action: "ingest_batch", status: "SUCCEEDED" }, result);
+    App.showToast("Sending transaction batch to /bookkeeping-query...");
+    const allData = MockAPI.getBookkeepingData();
+    const transactionsText = allData
+      .map(t => `${t.vendor} - $${t.amount.toFixed(2)} - ${t.date} - ${t.category}`)
+      .join("\n");
+    try {
+      const result = await RealAPI.queryBookkeeping(transactionsText);
+      App.showToast(`Step Function Succeeded! ${result.output.structured_result.transaction_count} transactions parsed via AWS Bedrock.`);
+      App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
+    } catch (err) {
+      App.showToast(`Ingestion failed: ${err.message}`);
+    }
   }
 };

@@ -84,8 +84,14 @@ window.ReviewAnalyzerView = {
 
   analyzeBatch: async () => {
     App.showToast("Sending review batch to /analyze-reviews...");
-    const result = await MockAPI.executeStepFunction("analyze-reviews", { count: 5 });
-    App.showToast("Review sentiment & topic extraction completed!");
-    App.logApiExecution("POST /analyze-reviews", { batch: 5 }, result);
+    const data = MockAPI.getReviewData();
+    const reviewsText = data.map(r => `[${r.rating} stars] ${r.author}: ${r.text}`).join("\n");
+    try {
+      const result = await RealAPI.analyzeReviews(reviewsText);
+      App.showToast("Review sentiment & topic extraction completed!");
+      App.logApiExecution("POST /analyze-reviews", { reviews_text: reviewsText }, result);
+    } catch (err) {
+      App.showToast(`Analysis failed: ${err.message}`);
+    }
   }
 };
