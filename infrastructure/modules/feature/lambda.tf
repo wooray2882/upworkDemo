@@ -67,3 +67,36 @@ data "archive_file" "postprocess" {
   source_dir  = "${var.lambda_source_dir}/postprocess"
   output_path = "${path.module}/../../../.build/${var.feature_name}-postprocess.zip"
 }
+
+# Read-back Lambda: GET /<feature-name> scans this feature's table directly
+# (no Step Functions - a plain read doesn't need orchestration). Every
+# feature gets one so the frontend can list what's actually stored.
+data "archive_file" "list" {
+  type        = "zip"
+  source_dir  = "${var.lambda_source_dir}/list"
+  output_path = "${path.module}/../../../.build/${var.feature_name}-list.zip"
+}
+
+resource "aws_lambda_function" "list" {
+  function_name    = "${var.feature_name}-list-${var.environment}"
+  filename         = data.archive_file.list.output_path
+  source_code_hash = data.archive_file.list.output_base64sha256
+  handler          = "handler.lambda_handler"
+  runtime          = "python3.12"
+  role             = var.lambda_exec_role_arn
+  timeout          = 10
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.this.name
+    }
+  }
+
+  tags = merge(var.tags, { Feature = var.feature_name })
+}
+
+resource "aws_cloudwatch_log_group" "list" {
+  name              = "/aws/lambda/${aws_lambda_function.list.function_name}"
+  retention_in_days = var.log_retention_days
+  tags              = var.tags
+}

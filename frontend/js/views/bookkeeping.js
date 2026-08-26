@@ -3,11 +3,36 @@
  */
 
 window.BookkeepingView = {
+  liveData: null, // flattened transactions from real DynamoDB batches, once loaded
+
+  // Each stored record is one ingested batch (structured_result.transactions[]).
+  // Flatten into one row per transaction for the table, synthesizing an id
+  // and status since those aren't part of the generic per-batch schema.
+  flattenBatches: (batches) => {
+    const rows = [];
+    batches.forEach(batch => {
+      const txns = batch.structured_result?.transactions || [];
+      txns.forEach((t, i) => {
+        rows.push({
+          id: `${batch.id.slice(0, 8)}-${i}`,
+          date: t.date || "—",
+          vendor: t.vendor || "Unknown",
+          category: t.category || "uncategorized",
+          amount: Number(t.amount) || 0,
+          status: t.category ? "categorized" : "flagged"
+        });
+      });
+    });
+    return rows.sort((a, b) => (a.date < b.date ? 1 : -1));
+  },
+
   render: () => {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = MockAPI.getBookkeepingData();
+    const data = BookkeepingView.liveData || MockAPI.getBookkeepingData();
+    const totalExpenses = data.reduce((sum, t) => sum + t.amount, 0);
+    const flaggedCount = data.filter(t => t.status === "flagged").length;
 
     mainEl.innerHTML = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 24px;">
@@ -45,10 +70,10 @@ window.BookkeepingView = {
               <span>Total Expenses</span>
               <div class="kpi-icon">📊</div>
             </div>
-            <div class="kpi-value">$3,200.00</div>
+            <div class="kpi-value">$${totalExpenses.toFixed(2)}</div>
             <div class="kpi-footer">
-              <span class="trend-pill down">↓ -22%</span>
-              <span style="color: var(--text-muted);">reduced cloud overhead</span>
+              <span class="trend-pill down">${data.length} transactions</span>
+              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "live from DynamoDB" : "sample data"}</span>
             </div>
           </div>
 
@@ -69,10 +94,10 @@ window.BookkeepingView = {
               <span>Flagged Anomalies</span>
               <div class="kpi-icon">⚠️</div>
             </div>
-            <div class="kpi-value">1 Review</div>
+            <div class="kpi-value">${flaggedCount} ${flaggedCount === 1 ? "Review" : "Reviews"}</div>
             <div class="kpi-footer">
-              <span class="trend-pill down" style="background: rgba(245,158,11,0.15); color: var(--accent-warning);">1 Action</span>
-              <span style="color: var(--text-muted);">TXN-9027 missing receipt</span>
+              <span class="trend-pill down" style="background: rgba(245,158,11,0.15); color: var(--accent-warning);">${flaggedCount} Action${flaggedCount === 1 ? "" : "s"}</span>
+              <span style="color: var(--text-muted);">missing category / low confidence</span>
             </div>
           </div>
         </div>
@@ -119,11 +144,7 @@ window.BookkeepingView = {
             <div class="filter-group">
               <select id="category-filter" class="select-input" onchange="BookkeepingView.filterData()">
                 <option value="ALL">All Categories</option>
-                <option value="Cloud Infrastructure">Cloud Infrastructure</option>
-                <option value="AI Services">AI Services</option>
-                <option value="Developer Tools">Developer Tools</option>
-                <option value="Software & SaaS">Software & SaaS</option>
-                <option value="Travel & Meals">Travel & Meals</option>
+                ${[...new Set(data.map(t => t.category))].sort().map(c => `<option value="${c}">${c}</option>`).join("")}
               </select>
 
               <select id="status-filter" class="select-input" onchange="BookkeepingView.filterData()">
@@ -138,7 +159,7 @@ window.BookkeepingView = {
           <div id="bookkeeping-table-container"></div>
 
           <div class="table-footer">
-            <span>Showing <strong id="visible-count">15</strong> of 15 records in DynamoDB</span>
+            <span>Showing <strong id="visible-count">${data.length}</strong> of ${data.length} records in DynamoDB</span>
             <div class="pagination-buttons">
               <button class="page-btn" disabled>Previous</button>
               <button class="page-btn" disabled>Next</button>
@@ -158,6 +179,17 @@ window.BookkeepingView = {
 
     // Initialize RAG chat context
     RAGChat.init("bookkeeping");
+
+    // Fetch real records from DynamoDB (via GET /bookkeeping-query) once,
+    // then re-render with live data instead of MockAPI's static sample rows.
+    if (!BookkeepingView.liveData) {
+      RealAPI.listBookkeepingBatches()
+        .then(batches => {
+          BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
+          BookkeepingView.render();
+        })
+        .catch(err => App.showToast(`Could not load stored records: ${err.message}`));
+    }
   },
 
   filterData: () => {
@@ -165,7 +197,7 @@ window.BookkeepingView = {
     const cat = document.getElementById("category-filter").value;
     const status = document.getElementById("status-filter").value;
 
-    const allData = MockAPI.getBookkeepingData();
+    const allData = BookkeepingView.liveData || MockAPI.getBookkeepingData();
 
     const filtered = allData.filter(item => {
       const matchesSearch = item.vendor.toLowerCase().includes(query) ||

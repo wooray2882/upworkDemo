@@ -3,11 +3,41 @@
  */
 
 window.ReviewAnalyzerView = {
+  liveData: null, // flattened notable reviews from real DynamoDB batches, once loaded
+
+  // Each stored record is one analyzed batch (structured_result.notable_reviews[]
+  // holds the standout examples, not every review). Flatten into table rows -
+  // author/rating/score/keyTopic aren't part of the generic per-batch schema,
+  // so they're reasonable derived approximations, not stored values.
+  flattenBatches: (batches) => {
+    const rows = [];
+    const sentimentRating = { positive: 5, neutral: 3, negative: 1 };
+    batches.forEach(batch => {
+      const notable = batch.structured_result?.notable_reviews || [];
+      notable.forEach((r, i) => {
+        rows.push({
+          id: `${batch.id.slice(0, 8)}-${i}`,
+          author: `Batch ${batch.created_at.slice(0, 10)}`,
+          rating: sentimentRating[r.sentiment] ?? 3,
+          text: r.excerpt || "",
+          sentiment: r.sentiment || "neutral",
+          score: 0.85,
+          keyTopic: (r.reason || "").slice(0, 40)
+        });
+      });
+    });
+    return rows;
+  },
+
   render: () => {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = MockAPI.getReviewData();
+    const data = ReviewAnalyzerView.liveData || MockAPI.getReviewData();
+    const positiveCount = data.filter(r => r.sentiment === "positive").length;
+    const negativeCount = data.filter(r => r.sentiment === "negative").length;
+    const positiveRate = data.length ? (positiveCount / data.length * 100) : 0;
+    const negativeRate = data.length ? (negativeCount / data.length * 100) : 0;
 
     mainEl.innerHTML = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 24px;">
@@ -33,10 +63,10 @@ window.ReviewAnalyzerView = {
               <span>Positive Sentiment Rate</span>
               <div class="kpi-icon">😃</div>
             </div>
-            <div class="kpi-value">60.0%</div>
+            <div class="kpi-value">${positiveRate.toFixed(1)}%</div>
             <div class="kpi-footer">
-              <span class="trend-pill up">3 of 5 Reviews</span>
-              <span style="color: var(--text-muted);">mostly satisfied</span>
+              <span class="trend-pill up">${positiveCount} of ${data.length} Reviews</span>
+              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "live from DynamoDB" : "sample data"}</span>
             </div>
           </div>
 
@@ -45,9 +75,9 @@ window.ReviewAnalyzerView = {
               <span>Negative / Critical Rate</span>
               <div class="kpi-icon">😠</div>
             </div>
-            <div class="kpi-value">40.0%</div>
+            <div class="kpi-value">${negativeRate.toFixed(1)}%</div>
             <div class="kpi-footer">
-              <span class="trend-pill down">2 Flagged</span>
+              <span class="trend-pill down">${negativeCount} Flagged</span>
               <span style="color: var(--text-muted);">requires support action</span>
             </div>
           </div>
@@ -57,9 +87,9 @@ window.ReviewAnalyzerView = {
               <span>Top Pain Point Identified</span>
               <div class="kpi-icon">🚨</div>
             </div>
-            <div class="kpi-value" style="font-size: 1.2rem;">Shipping Delay</div>
+            <div class="kpi-value" style="font-size: 1.2rem;">${data.find(r => r.sentiment === "negative")?.keyTopic || "None flagged"}</div>
             <div class="kpi-footer">
-              <span style="color: var(--accent-cyan); font-weight: 600;">REV-102 (4-day delay)</span>
+              <span style="color: var(--accent-cyan); font-weight: 600;">${data.find(r => r.sentiment === "negative")?.id || "—"}</span>
             </div>
           </div>
         </div>
@@ -80,6 +110,17 @@ window.ReviewAnalyzerView = {
     }, 50);
 
     RAGChat.init("reviews");
+
+    // Fetch real records from DynamoDB (via GET /analyze-reviews) once,
+    // then re-render with live data instead of MockAPI's static sample rows.
+    if (!ReviewAnalyzerView.liveData) {
+      RealAPI.listReviewBatches()
+        .then(batches => {
+          ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
+          ReviewAnalyzerView.render();
+        })
+        .catch(err => App.showToast(`Could not load stored records: ${err.message}`));
+    }
   },
 
   analyzeBatch: async () => {
