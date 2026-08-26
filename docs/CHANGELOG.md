@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-sfn-lambda-invoke-policy`)
+- Live testing surfaced `AccessDeniedException: ... is not authorized to
+  perform lambda:InvokeFunction`. The shared Step Functions exec role's
+  policy scoped `Resource` to `arn:aws:lambda:*:*:function:${var.project_name}-*`,
+  but feature Lambdas are named `<feature_name>-*` (e.g.
+  `extract-document-ai-call-demo`), not `<project_name>-*` — and
+  core-engine, by design, doesn't know feature names ahead of time.
+  Rescoped to `Resource = "*"` in
+  `infrastructure/modules/core-engine/step-functions-template.tf`.
+
 ### Fixed (branch: `core/fix-express-state-machine`)
 - A live end-to-end test against the deployed API (`POST /extract-document`)
   returned `StateMachineTypeNotSupported: This operation is not supported by
