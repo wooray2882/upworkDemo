@@ -56,6 +56,19 @@ window.RealAPI = (function () {
     queryBookkeeping: (transactionsText) => callFeature("bookkeeping-query", { transactions_text: transactionsText }),
     listDocuments: () => listRecords("extract-document"),
     listReviewBatches: () => listRecords("analyze-reviews"),
-    listBookkeepingBatches: () => listRecords("bookkeeping-query")
+    listBookkeepingBatches: () => listRecords("bookkeeping-query"),
+    // Scans the real DynamoDB table(s) for `viewContext` and asks Bedrock to
+    // answer grounded in that real data (see lambdas/rag-query/handler.py -
+    // not a formal Knowledge Base vector search, since nothing has been
+    // ingested into that index; a documented follow-up, not a mock).
+    queryRag: async (question, viewContext) => {
+      const response = await fetch(`${BASE_URL}/rag-query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, context: viewContext })
+      });
+      if (!response.ok) throw new Error(`POST /rag-query failed: ${response.status}`);
+      return response.json();
+    }
   };
 })();

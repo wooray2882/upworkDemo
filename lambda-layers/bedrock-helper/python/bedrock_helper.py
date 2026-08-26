@@ -50,11 +50,10 @@ DEFAULT_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 MAX_FILE_BASE64_BYTES = 4_500_000
 
 
-def _invoke(content, model_id: str | None = None) -> dict:
+def _call_bedrock(content, model_id: str | None = None) -> str:
     """Calls Bedrock with the given Anthropic Messages `content` (a string
     for plain text, or a list of content blocks for multimodal input) and
-    returns parsed JSON. Retries on throttling/transient errors; raises
-    ValueError if the model does not return valid JSON."""
+    returns the raw text response. Retries on throttling/transient errors."""
     model_id = model_id or DEFAULT_MODEL_ID
 
     body = json.dumps({
@@ -68,11 +67,10 @@ def _invoke(content, model_id: str | None = None) -> dict:
         try:
             response = _client.invoke_model(modelId=model_id, body=body)
             payload = json.loads(response["body"].read())
-            text = payload["content"][0]["text"]
-            return json.loads(_strip_code_fences(text))
-        except (json.JSONDecodeError, KeyError, IndexError) as exc:
+            return payload["content"][0]["text"]
+        except (KeyError, IndexError) as exc:
             last_error = exc
-            break  # malformed model output — retrying won't help
+            break  # unexpected response shape — retrying won't help
         except Exception as exc:  # throttling / transient AWS errors
             last_error = exc
             time.sleep(BACKOFF_SECONDS * (attempt + 1))
@@ -80,9 +78,25 @@ def _invoke(content, model_id: str | None = None) -> dict:
     raise ValueError(f"Bedrock call failed after retries: {last_error}")
 
 
+def _invoke(content, model_id: str | None = None) -> dict:
+    """Calls Bedrock and parses the response as JSON. Raises ValueError if
+    the model does not return valid JSON."""
+    text = _call_bedrock(content, model_id)
+    try:
+        return json.loads(_strip_code_fences(text))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Bedrock did not return valid JSON: {exc}") from exc
+
+
 def invoke_model(prompt: str, model_id: str | None = None) -> dict:
     """Calls Bedrock with a plain-text prompt and returns parsed JSON."""
     return _invoke(prompt, model_id)
+
+
+def invoke_model_text(prompt: str, model_id: str | None = None) -> str:
+    """Calls Bedrock with a plain-text prompt and returns the raw text
+    response (for conversational answers, not structured extraction)."""
+    return _call_bedrock(prompt, model_id)
 
 
 def invoke_model_with_file(

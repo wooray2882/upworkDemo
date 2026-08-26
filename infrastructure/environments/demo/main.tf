@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 6.27, < 7.0" # matches modules/core-engine; see its versions.tf for why
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.4"
+    }
   }
 
   # Uncomment once a state bucket exists; local state is fine for initial

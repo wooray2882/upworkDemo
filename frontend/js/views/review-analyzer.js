@@ -33,7 +33,7 @@ window.ReviewAnalyzerView = {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = ReviewAnalyzerView.liveData || MockAPI.getReviewData();
+    const data = ReviewAnalyzerView.liveData || [];
     const positiveCount = data.filter(r => r.sentiment === "positive").length;
     const negativeCount = data.filter(r => r.sentiment === "negative").length;
     const positiveRate = data.length ? (positiveCount / data.length * 100) : 0;
@@ -66,7 +66,7 @@ window.ReviewAnalyzerView = {
             <div class="kpi-value">${positiveRate.toFixed(1)}%</div>
             <div class="kpi-footer">
               <span class="trend-pill up">${positiveCount} of ${data.length} Reviews</span>
-              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "live from DynamoDB" : "sample data"}</span>
+              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "live from DynamoDB" : "loading..."}</span>
             </div>
           </div>
 
@@ -131,6 +131,11 @@ window.ReviewAnalyzerView = {
       const result = await RealAPI.analyzeReviews(reviewsText);
       App.showToast("Review sentiment & topic extraction completed!");
       App.logApiExecution("POST /analyze-reviews", { reviews_text: reviewsText }, result);
+      // Refresh from DynamoDB so the new batch shows up immediately instead
+      // of only after a full page reload.
+      const batches = await RealAPI.listReviewBatches();
+      ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
+      ReviewAnalyzerView.render();
     } catch (err) {
       App.showToast(`Analysis failed: ${err.message}`);
     }

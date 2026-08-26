@@ -5,6 +5,44 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/wire-remaining-mock-data`)
+- Removed every remaining mock/fabricated display in the frontend:
+  - `bookkeeping.js`: removed the hardcoded "Total Revenue" and "Net Margin"
+    KPI cards (there is no revenue field anywhere in the bookkeeping-query
+    schema - it's an expense extractor, not a P&L tool). Replaced with real
+    "Average Transaction" and "Categories Tracked" computed from live data.
+  - `charts.js`: `renderLineChart` previously ignored its `data` parameter
+    entirely and drew hardcoded revenue/expense numbers. Rewritten as a
+    single real "Monthly Expense Trend" series computed from actual
+    transaction dates/amounts. `renderDonutChart`'s hardcoded fallback now
+    only triggers on genuinely empty data instead of silently overriding
+    real categories.
+  - `document-extract.js`: removed the three canned preset documents
+    (Invoice/Receipt/W-2) that displayed fabricated `extractedJSON` before
+    any real extraction ran. Replaced with a real "Recent Extractions"
+    list fetched from `GET /extract-document`, selectable to view the
+    actual stored result, plus upload/paste-text inputs that only show
+    real Bedrock output once run.
+  - `rag-chat.js`: was fully mocked (`MockAPI.queryRAGKnowledgeBase`).
+    Added `lambdas/rag-query/handler.py` + `infrastructure/environments/demo/rag-query.tf`
+    (`POST /rag-query`) - scans the real DynamoDB table(s) for the active
+    view and asks Bedrock to answer grounded in that data. This is a
+    pragmatic scan-and-stuff RAG pattern, not the formal Bedrock Knowledge
+    Base vector search provisioned in `rag-knowledge-base.tf` - nothing
+    has ever been ingested into that index, so wiring the chat to it today
+    would return empty results. Documented as a real follow-up, not
+    silently skipped.
+  - `bookkeeping.js` / `review-analyzer.js`: after a new batch is
+    submitted, the view now re-fetches from DynamoDB immediately instead
+    of only showing the new record after a full page reload.
+- `bedrock_helper.py`: split `_invoke` into `_call_bedrock` (raw text, retry
+  logic) + `_invoke` (JSON-parsing wrapper) and added `invoke_model_text`
+  for the RAG query's plain-text conversational answers.
+- Verified end-to-end in a real browser session after deploying: real KPIs,
+  real charts, real Document Extractor history, and a real RAG chat answer
+  correctly citing an actual stored transaction (DigitalOcean, $318.40) with
+  honest uncertainty about category matching, not a canned response.
+
 ### Added (branch: `feature/read-path-dynamodb`)
 - The platform only ever wrote to DynamoDB - there was no way to read
   stored records back out. Added a `list` Lambda per feature

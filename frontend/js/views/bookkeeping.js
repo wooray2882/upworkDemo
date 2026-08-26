@@ -26,13 +26,52 @@ window.BookkeepingView = {
     return rows.sort((a, b) => (a.date < b.date ? 1 : -1));
   },
 
+  // Real month-by-month expense totals from the flattened rows. There is no
+  // "revenue" field anywhere in the bookkeeping-query schema (it's an
+  // expense extractor, not a P&L tool), so this is a single expense series,
+  // not a fabricated revenue-vs-expense comparison.
+  monthlyTotals: (data) => {
+    const byMonth = {};
+    data.forEach(t => {
+      const month = (t.date || "").slice(0, 7); // "2026-03"
+      if (!month) return;
+      byMonth[month] = (byMonth[month] || 0) + t.amount;
+    });
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return Object.keys(byMonth).sort().map(key => ({
+      label: monthNames[parseInt(key.slice(5, 7), 10) - 1] || key,
+      total: byMonth[key]
+    }));
+  },
+
+  // Real category breakdown (% of total spend) from the flattened rows.
+  categoryBreakdown: (data) => {
+    const palette = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e", "#a855f7", "#84cc16"];
+    const byCategory = {};
+    data.forEach(t => {
+      const cat = t.category || "uncategorized";
+      byCategory[cat] = (byCategory[cat] || 0) + t.amount;
+    });
+    const total = Object.values(byCategory).reduce((a, b) => a + b, 0);
+    if (total === 0) return [];
+    return Object.entries(byCategory)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, amount], i) => ({
+        name,
+        value: Math.round((amount / total) * 1000) / 10, // one decimal place
+        color: palette[i % palette.length]
+      }));
+  },
+
   render: () => {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = BookkeepingView.liveData || MockAPI.getBookkeepingData();
+    const data = BookkeepingView.liveData || [];
     const totalExpenses = data.reduce((sum, t) => sum + t.amount, 0);
     const flaggedCount = data.filter(t => t.status === "flagged").length;
+    const avgTransaction = data.length ? totalExpenses / data.length : 0;
+    const categoriesTracked = new Set(data.map(t => t.category)).size;
 
     mainEl.innerHTML = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 24px;">
@@ -53,18 +92,6 @@ window.BookkeepingView = {
 
         <!-- KPI Metrics Grid -->
         <div class="metrics-grid">
-          <div class="kpi-card" style="--card-accent: var(--accent-success);">
-            <div class="kpi-header">
-              <span>Total Revenue (March)</span>
-              <div class="kpi-icon">💰</div>
-            </div>
-            <div class="kpi-value">$7,500.00</div>
-            <div class="kpi-footer">
-              <span class="trend-pill up">↑ +21%</span>
-              <span style="color: var(--text-muted);">vs. last month</span>
-            </div>
-          </div>
-
           <div class="kpi-card" style="--card-accent: var(--accent-danger);">
             <div class="kpi-header">
               <span>Total Expenses</span>
@@ -73,19 +100,19 @@ window.BookkeepingView = {
             <div class="kpi-value">$${totalExpenses.toFixed(2)}</div>
             <div class="kpi-footer">
               <span class="trend-pill down">${data.length} transactions</span>
-              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "live from DynamoDB" : "sample data"}</span>
+              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "live from DynamoDB" : "loading..."}</span>
             </div>
           </div>
 
           <div class="kpi-card" style="--card-accent: var(--accent-primary);">
             <div class="kpi-header">
-              <span>Net Margin</span>
+              <span>Average Transaction</span>
               <div class="kpi-icon">📈</div>
             </div>
-            <div class="kpi-value">57.3%</div>
+            <div class="kpi-value">$${avgTransaction.toFixed(2)}</div>
             <div class="kpi-footer">
-              <span class="trend-pill up">↑ Healthy</span>
-              <span style="color: var(--text-muted);">strong profitability</span>
+              <span class="trend-pill up">${categoriesTracked} categor${categoriesTracked === 1 ? "y" : "ies"}</span>
+              <span style="color: var(--text-muted);">tracked across all records</span>
             </div>
           </div>
 
@@ -108,12 +135,11 @@ window.BookkeepingView = {
             <div class="chart-card-header">
               <div>
                 <div class="chart-title">
-                  <span>Revenue vs. Expense Trend (5-Month History)</span>
+                  <span>Monthly Expense Trend</span>
                 </div>
-                <div class="chart-subtitle">Calculated via AWS Lambda aggregation</div>
+                <div class="chart-subtitle">From real extracted transaction dates/amounts</div>
               </div>
               <div style="display: flex; gap: 16px; font-size: 0.78rem;">
-                <span style="display: flex; align-items: center; gap: 6px; color: var(--accent-primary);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary);"></span> Revenue</span>
                 <span style="display: flex; align-items: center; gap: 6px; color: var(--accent-danger);"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-danger);"></span> Expenses</span>
               </div>
             </div>
@@ -126,7 +152,7 @@ window.BookkeepingView = {
             <div class="chart-card-header">
               <div>
                 <div class="chart-title">Category Breakdown</div>
-                <div class="chart-subtitle">March expense distribution</div>
+                <div class="chart-subtitle">Real expense distribution across all records</div>
               </div>
             </div>
             <div id="category-donut-container" class="chart-container"></div>
@@ -170,10 +196,11 @@ window.BookkeepingView = {
       </div>
     `;
 
-    // Render Charts
+    // Render Charts (real aggregates computed from `data` above - not
+    // hardcoded, and not rendered at all until there's real data to show)
     setTimeout(() => {
-      ChartRenderer.renderLineChart("rev-exp-canvas");
-      ChartRenderer.renderDonutChart("category-donut-container");
+      ChartRenderer.renderLineChart("rev-exp-canvas", BookkeepingView.monthlyTotals(data));
+      ChartRenderer.renderDonutChart("category-donut-container", BookkeepingView.categoryBreakdown(data));
       DataTable.renderBookkeepingTable("bookkeeping-table-container", data);
     }, 50);
 
@@ -181,7 +208,8 @@ window.BookkeepingView = {
     RAGChat.init("bookkeeping");
 
     // Fetch real records from DynamoDB (via GET /bookkeeping-query) once,
-    // then re-render with live data instead of MockAPI's static sample rows.
+    // then re-render with live data. No MockAPI fallback - an empty/loading
+    // state is shown until this resolves rather than fabricated numbers.
     if (!BookkeepingView.liveData) {
       RealAPI.listBookkeepingBatches()
         .then(batches => {
@@ -197,7 +225,7 @@ window.BookkeepingView = {
     const cat = document.getElementById("category-filter").value;
     const status = document.getElementById("status-filter").value;
 
-    const allData = BookkeepingView.liveData || MockAPI.getBookkeepingData();
+    const allData = BookkeepingView.liveData || [];
 
     const filtered = allData.filter(item => {
       const matchesSearch = item.vendor.toLowerCase().includes(query) ||
@@ -224,6 +252,11 @@ window.BookkeepingView = {
       const result = await RealAPI.queryBookkeeping(transactionsText);
       App.showToast(`Step Function Succeeded! ${result.output.structured_result.transaction_count} transactions parsed via AWS Bedrock.`);
       App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
+      // Refresh from DynamoDB so the new batch shows up immediately instead
+      // of only after a full page reload.
+      const batches = await RealAPI.listBookkeepingBatches();
+      BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
+      BookkeepingView.render();
     } catch (err) {
       App.showToast(`Ingestion failed: ${err.message}`);
     }

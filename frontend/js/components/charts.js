@@ -5,13 +5,15 @@
 
 window.ChartRenderer = {
   
-  // Line Chart for Monthly Revenue vs Expenses
-  renderLineChart: (canvasId, data) => {
+  // Line Chart for Monthly Expense Totals (real data only - there is no
+  // "revenue" field anywhere in the bookkeeping-query schema, so this is a
+  // single expense series computed from actual stored transactions, not a
+  // two-series revenue/expense comparison).
+  renderLineChart: (canvasId, monthly) => {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
-    // Scale for High DPI displays
+
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * dpr;
@@ -22,16 +24,19 @@ window.ChartRenderer = {
     const height = rect.height;
     const padding = 40;
 
-    // Clear Canvas
     ctx.clearRect(0, 0, width, height);
 
-    const labels = ["Nov", "Dec", "Jan", "Feb", "Mar"];
-    const revenue = [4200, 5100, 4800, 6200, 7500];
-    const expenses = [2100, 2400, 2900, 4100, 3200];
+    if (!monthly || monthly.length === 0) {
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "13px Plus Jakarta Sans";
+      ctx.fillText("No transactions yet", padding, height / 2);
+      return;
+    }
 
-    const maxVal = 9000;
+    const labels = monthly.map(m => m.label);
+    const expenses = monthly.map(m => m.total);
+    const maxVal = Math.max(...expenses, 1) * 1.2;
 
-    // Draw Grid Lines
     ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
@@ -41,64 +46,56 @@ window.ChartRenderer = {
       ctx.lineTo(width - padding, y);
       ctx.stroke();
 
-      // Axis label
       ctx.fillStyle = "#6b7280";
       ctx.font = "11px Plus Jakarta Sans";
-      ctx.fillText(`$${Math.round(maxVal - (i * maxVal / 4))}`, 10, y + 4);
+      ctx.fillText(`$${Math.round(maxVal - (i * maxVal / 4))}`, 4, y + 4);
     }
 
-    // Helper to plot curve
     const getCoords = (arr) => arr.map((val, idx) => {
-      const x = padding + (idx * (width - padding * 2) / (arr.length - 1));
+      const x = arr.length > 1
+        ? padding + (idx * (width - padding * 2) / (arr.length - 1))
+        : width / 2;
       const y = height - padding - (val / maxVal * (height - padding * 2));
       return { x, y };
     });
 
-    const revCoords = getCoords(revenue);
     const expCoords = getCoords(expenses);
 
-    // Render Gradient Fill for Revenue
-    const gradRev = ctx.createLinearGradient(0, 0, 0, height);
-    gradRev.addColorStop(0, "rgba(99, 102, 241, 0.35)");
-    gradRev.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+    const gradExp = ctx.createLinearGradient(0, 0, 0, height);
+    gradExp.addColorStop(0, "rgba(244, 63, 94, 0.30)");
+    gradExp.addColorStop(1, "rgba(244, 63, 94, 0.0)");
 
     ctx.beginPath();
-    ctx.moveTo(revCoords[0].x, height - padding);
-    revCoords.forEach(pt => ctx.lineTo(pt.x, pt.y));
-    ctx.lineTo(revCoords[revCoords.length - 1].x, height - padding);
+    ctx.moveTo(expCoords[0].x, height - padding);
+    expCoords.forEach(pt => ctx.lineTo(pt.x, pt.y));
+    ctx.lineTo(expCoords[expCoords.length - 1].x, height - padding);
     ctx.closePath();
-    ctx.fillStyle = gradRev;
+    ctx.fillStyle = gradExp;
     ctx.fill();
 
-    // Render Lines
-    const drawLine = (coords, color) => {
+    ctx.beginPath();
+    ctx.strokeStyle = "#f43f5e";
+    ctx.lineWidth = 3;
+    expCoords.forEach((pt, i) => {
+      if (i === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+
+    expCoords.forEach(pt => {
       ctx.beginPath();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
-      coords.forEach((pt, i) => {
-        if (i === 0) ctx.moveTo(pt.x, pt.y);
-        else ctx.lineTo(pt.x, pt.y);
-      });
+      ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#f43f5e";
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#090d16";
       ctx.stroke();
+    });
 
-      // Dots
-      coords.forEach(pt => {
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#090d16";
-        ctx.stroke();
-      });
-    };
-
-    drawLine(revCoords, "#6366f1"); // Revenue Line (Indigo)
-    drawLine(expCoords, "#f43f5e"); // Expense Line (Rose)
-
-    // X Axis Labels
     labels.forEach((lbl, idx) => {
-      const x = padding + (idx * (width - padding * 2) / (labels.length - 1));
+      const x = labels.length > 1
+        ? padding + (idx * (width - padding * 2) / (labels.length - 1))
+        : width / 2;
       ctx.fillStyle = "#9ca3af";
       ctx.font = "12px Plus Jakarta Sans";
       ctx.fillText(lbl, x - 10, height - 12);
@@ -110,12 +107,14 @@ window.ChartRenderer = {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const data = categories || [
-      { name: "Cloud & AI", value: 45, color: "#6366f1" },
-      { name: "SaaS & Tools", value: 25, color: "#06b6d4" },
-      { name: "Equipment & Hardware", value: 18, color: "#10b981" },
-      { name: "Office & Travel", value: 12, color: "#f59e0b" }
-    ];
+    if (!categories || categories.length === 0) {
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.justifyContent = "center";
+      container.innerHTML = `<span style="color: var(--text-muted); font-size: 0.85rem;">No transactions yet</span>`;
+      return;
+    }
+    const data = categories;
 
     let total = data.reduce((acc, item) => acc + item.value, 0);
     let currentAngle = 0;
