@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-dynamodb-lambda-permissions`)
+- Live testing surfaced `AccessDeniedException: ... not authorized to
+  perform: dynamodb:PutItem`. The shared Lambda exec role
+  (core-engine) never had any DynamoDB permissions - core-engine can't
+  know feature table names ahead of time. Added
+  `lambda_exec_role_name` output to core-engine and a
+  `dynamodb_access` inline policy in `modules/feature/dynamodb-table.tf`
+  that each feature attaches to the shared role, scoped to its own table
+  ARN. Wired `lambda_exec_role_name` through all three feature instances
+  in `infrastructure/environments/demo/main.tf`.
+
 ### Fixed (branch: `core/fix-bedrock-json-code-fences`)
 - Live testing surfaced `ValueError: Bedrock call failed after retries:
   Expecting value: line 1 column 1 (char 0)`. Reproduced directly against

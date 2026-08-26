@@ -18,6 +18,11 @@ output "lambda_exec_role_arn" {
   value       = aws_iam_role.lambda_exec.arn
 }
 
+output "lambda_exec_role_name" {
+  description = "IAM role name (not ARN) of the shared Lambda exec role - feature modules attach their own table-scoped policy to this role by name."
+  value       = aws_iam_role.lambda_exec.name
+}
+
 output "bedrock_helper_layer_arn" {
   description = "ARN of the shared Bedrock-call helper Lambda layer."
   value       = aws_lambda_layer_version.bedrock_helper.arn

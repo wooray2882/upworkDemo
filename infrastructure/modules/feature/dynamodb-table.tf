@@ -19,6 +19,25 @@ resource "aws_dynamodb_table" "this" {
   tags = merge(var.tags, { Feature = var.feature_name })
 }
 
+# The shared Lambda exec role (core-engine) has no DynamoDB permissions of
+# its own - core-engine can't know feature table names ahead of time. Each
+# feature attaches its own table-scoped policy to that shared role instead.
+# A live test caught the exec role having no dynamodb:PutItem permission at
+# all before this was added.
+resource "aws_iam_role_policy" "dynamodb_access" {
+  name = "${var.feature_name}-dynamodb-access"
+  role = var.lambda_exec_role_name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan"]
+      Resource = aws_dynamodb_table.this.arn
+    }]
+  })
+}
+
 # Table schema (enforced at the application layer, not by DynamoDB):
 #   id                  (S)  - partition key, UUID
 #   created_at          (S)  - ISO-8601 timestamp
