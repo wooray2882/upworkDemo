@@ -81,11 +81,12 @@ This is a portfolio/demo platform, not a production system:
 define the shared shape. Three feature instances exist so far, validating
 the pattern across different problem shapes:
 
-| Feature | Branch | Validates |
+| Feature | Route | Validates |
 |---|---|---|
-| `extract-document` | `main` | Baseline one-shot extraction pattern |
-| `analyze-reviews` | `feature/analyze-reviews` | Pattern generalizes to a second, differently-shaped extraction task |
-| `bookkeeping-query` | `feature/bookkeeping-query` | Ingestion + the shared RAG layer answering conversational queries over accumulated records — the "harder case" (see `docs/architecture.md`) |
+| `extract-document` | `/extract-document` | Baseline one-shot extraction pattern |
+| `analyze-reviews` | `/analyze-reviews` | Pattern generalizes to a second, differently-shaped extraction task |
+| `bookkeeping-query` | `/bookkeeping-query` | Ingestion + the shared RAG layer answering conversational queries over accumulated records — the "harder case" (see `docs/architecture.md`) |
 
-Only `extract-document` is merged into `main` so far; the other two are on
-their feature branches pending review/merge (see `docs/branching.md`).
+All three are merged into `main` and `terraform plan`-verified (31 resources
+to add against a clean AWS account). Not yet `apply`'d to a real AWS
+account or connected to a frontend.
