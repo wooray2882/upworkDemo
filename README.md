@@ -93,6 +93,13 @@ orchestration, real DynamoDB storage. The `frontend/` dashboard is wired to
 the live API (`frontend/js/real-api.js` + `frontend/js/config.js`) and was
 tested through the actual browser UI for all three features.
 
+`extract-document` also accepts a real uploaded PDF or image
+(`document_base64` + `media_type`) — Claude reads it directly via
+Bedrock's native document/vision support (this is the OCR step; no
+separate Textract/OCR service). Verified live with a real PDF through
+both the API directly and the frontend's file picker. Files are capped at
+~4MB (Lambda's 6MB synchronous payload limit, after base64 overhead).
+
 Known gaps: no RAG conversational query wired into the frontend chat widget
 yet (it's still on `MockAPI.queryRAGKnowledgeBase`); no GET routes to list
 stored records back out of DynamoDB; no remote Terraform state backend.
