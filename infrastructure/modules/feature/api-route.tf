@@ -48,3 +48,28 @@ resource "aws_apigatewayv2_route" "this" {
   route_key = "${var.http_method} /${var.feature_name}"
   target    = "integrations/${aws_apigatewayv2_integration.this.id}"
 }
+
+# --- Read-back route: GET /<feature-name> -> list Lambda directly ---------
+# A plain DynamoDB read doesn't need Step Functions orchestration, so this
+# talks straight to the list Lambda via a standard Lambda proxy integration.
+
+resource "aws_apigatewayv2_integration" "list" {
+  api_id                 = var.api_id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.list.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "list" {
+  api_id    = var.api_id
+  route_key = "GET /${var.feature_name}"
+  target    = "integrations/${aws_apigatewayv2_integration.list.id}"
+}
+
+resource "aws_lambda_permission" "list_api_gateway" {
+  statement_id  = "AllowAPIGatewayInvokeList"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.list.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${var.api_execution_arn}/*/*/${var.feature_name}"
+}

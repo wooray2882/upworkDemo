@@ -38,6 +38,14 @@ window.RealAPI = (function () {
     };
   };
 
+  // GETs a feature's stored DynamoDB records directly (plain Lambda proxy
+  // integration, not Step Functions - see modules/feature/api-route.tf).
+  const listRecords = async (routeName) => {
+    const response = await fetch(`${BASE_URL}/${routeName}`);
+    if (!response.ok) throw new Error(`GET /${routeName} failed: ${response.status}`);
+    return response.json();
+  };
+
   return {
     extractDocument: (documentText) => callFeature("extract-document", { document_text: documentText }),
     // documentBase64/mediaType come from a real uploaded PDF or image - Claude
@@ -45,6 +53,9 @@ window.RealAPI = (function () {
     // the OCR step, no separate OCR/Textract service involved).
     extractDocumentFile: (documentBase64, mediaType) => callFeature("extract-document", { document_base64: documentBase64, media_type: mediaType }),
     analyzeReviews: (reviewsText) => callFeature("analyze-reviews", { reviews_text: reviewsText }),
-    queryBookkeeping: (transactionsText) => callFeature("bookkeeping-query", { transactions_text: transactionsText })
+    queryBookkeeping: (transactionsText) => callFeature("bookkeeping-query", { transactions_text: transactionsText }),
+    listDocuments: () => listRecords("extract-document"),
+    listReviewBatches: () => listRecords("analyze-reviews"),
+    listBookkeepingBatches: () => listRecords("bookkeeping-query")
   };
 })();

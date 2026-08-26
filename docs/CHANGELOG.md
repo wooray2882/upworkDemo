@@ -5,6 +5,25 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/read-path-dynamodb`)
+- The platform only ever wrote to DynamoDB - there was no way to read
+  stored records back out. Added a `list` Lambda per feature
+  (`lambdas/*/list/handler.py`) that scans the feature's table directly
+  and a `GET /<feature-name>` API Gateway route (plain Lambda proxy
+  integration, not Step Functions - a read doesn't need orchestration).
+- `infrastructure/modules/feature/lambda.tf`: new `aws_lambda_function.list`
+  + log group, reusing the existing shared exec role (already has
+  `dynamodb:Scan` on this feature's table from `dynamodb-table.tf`'s
+  `dynamodb_access` policy - no new IAM needed).
+- `infrastructure/modules/feature/api-route.tf`: new integration, route,
+  and `aws_lambda_permission` for the GET route.
+- Seeded realistic synthetic test data (10 documents, 4 review batches,
+  4 bookkeeping batches) directly into the deployed DynamoDB tables via a
+  one-off boto3 script, for interactive testing.
+- Frontend: `RealAPI.listRecords()` and the Bookkeeping/Review views now
+  fetch real stored records on load instead of only showing
+  `MockAPI`'s static sample data.
+
 ### Added (branch: `feature/document-upload-ocr`)
 - Real file upload support for `extract-document`: the AI-call Lambda now
   accepts `document_base64` + `media_type` (PDF or image) in addition to
