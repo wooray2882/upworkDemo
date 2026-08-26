@@ -7,7 +7,6 @@ side is served separately by querying the shared RAG knowledge base
 (see docs/architecture.md, "Validating the design: bookkeeping/revenue
 tracker").
 """
-import json
 import os
 
 from bedrock_helper import invoke_model, render_prompt
@@ -16,8 +15,9 @@ PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 
 
 def lambda_handler(event, context):
-    body = json.loads(event.get("body") or "{}")
-    transactions_text = body.get("transactions_text", "")
+    # event is the Step Functions execution input directly, not an
+    # API-Gateway-proxy-style {"body": "<json string>"} envelope.
+    transactions_text = event.get("transactions_text", "")
 
     prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
     result = invoke_model(prompt)

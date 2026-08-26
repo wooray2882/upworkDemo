@@ -5,6 +5,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-lambda-event-shape`)
+- A "successful" end-to-end test returned an empty result
+  (`document_type: null, key_fields: {}`). Traced via CloudWatch logs: all
+  three AI-call handlers assumed an API-Gateway-proxy-style event
+  (`event["body"]` as a JSON string) and did `json.loads(event.get("body")
+  or "{}")`. But these Lambdas are invoked as Step Functions Tasks, not
+  directly by API Gateway - the API Gateway integration maps
+  `$request.body` straight into the state machine's `Input`, so `event` IS
+  the parsed request body already (e.g. `{"document_text": "..."}"`), not
+  `{"body": "..."}`. `event.get("body")` was always `None`, silently
+  producing an empty prompt. Fixed all three
+  `lambdas/*/ai-call/handler.py` files to read fields directly off
+  `event`. Confirmed with a real end-to-end test returning correctly
+  populated extraction fields.
+
 ### Fixed (branch: `core/fix-dynamodb-lambda-permissions`)
 - Live testing surfaced `AccessDeniedException: ... not authorized to
   perform: dynamodb:PutItem`. The shared Lambda exec role
