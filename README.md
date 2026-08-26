@@ -87,6 +87,12 @@ the pattern across different problem shapes:
 | `analyze-reviews` | `/analyze-reviews` | Pattern generalizes to a second, differently-shaped extraction task |
 | `bookkeeping-query` | `/bookkeeping-query` | Ingestion + the shared RAG layer answering conversational queries over accumulated records — the "harder case" (see `docs/architecture.md`) |
 
-All three are merged into `main` and `terraform plan`-verified (31 resources
-to add against a clean AWS account). Not yet `apply`'d to a real AWS
-account or connected to a frontend.
+All three are merged into `main`, deployed to a real AWS account, and
+verified working end-to-end: real Bedrock extraction, real Step Functions
+orchestration, real DynamoDB storage. The `frontend/` dashboard is wired to
+the live API (`frontend/js/real-api.js` + `frontend/js/config.js`) and was
+tested through the actual browser UI for all three features.
+
+Known gaps: no RAG conversational query wired into the frontend chat widget
+yet (it's still on `MockAPI.queryRAGKnowledgeBase`); no GET routes to list
+stored records back out of DynamoDB; no remote Terraform state backend.
