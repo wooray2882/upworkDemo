@@ -100,6 +100,14 @@ separate Textract/OCR service). Verified live with a real PDF through
 both the API directly and the frontend's file picker. Files are capped at
 ~4MB (Lambda's 6MB synchronous payload limit, after base64 overhead).
 
-Known gaps: no RAG conversational query wired into the frontend chat widget
-yet (it's still on `MockAPI.queryRAGKnowledgeBase`); no GET routes to list
-stored records back out of DynamoDB; no remote Terraform state backend.
+The RAG chat widget queries the real Bedrock Knowledge Base
+(`POST /rag-query` → `retrieve_and_generate`, S3 Vectors-backed) with real
+citations back to the ingested S3 source files, which highlight the
+matching table row(s) when clicked. `GET /<feature-name>` routes list
+stored records back out of DynamoDB for each feature's dashboard.
+
+Known gaps: no remote Terraform state backend yet (stubbed, commented out,
+in `infrastructure/environments/demo/main.tf`); ingestion into the
+Knowledge Base is currently a one-off manual step (export DynamoDB → S3 →
+`start_ingestion_job`), not triggered automatically when new records are
+created.

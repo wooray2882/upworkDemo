@@ -1,11 +1,16 @@
 # RAG chat query: POST /rag-query. Lives in the environment (not a shared
-# module) because it's cross-feature by nature - it needs every feature's
-# table name, and core-engine deliberately doesn't know about individual
-# features (see docs/adding-a-feature.md). Reuses the shared Lambda exec
-# role: it already has dynamodb:Scan on all three tables (each feature
-# module attaches its own table-scoped policy to that same shared role,
-# see modules/feature/dynamodb-table.tf) and bedrock:InvokeModel, so no new
-# IAM is needed here.
+# module) because it references the specific knowledge base instance from
+# core-engine. Reuses the shared Lambda exec role, which already has
+# bedrock:Retrieve/RetrieveAndGenerate scoped to this knowledge base (see
+# modules/core-engine/rag-knowledge-base.tf's bedrock_kb_query policy) - no
+# new IAM needed here.
+#
+# modelArn must be the full inference-profile ARN (not a bare model id) -
+# confirmed live: bedrock-agent-runtime's RetrieveAndGenerate rejected the
+# plain "us.anthropic.claude-sonnet-4-6" id format that invoke_model()
+# accepts elsewhere in this codebase.
+
+data "aws_caller_identity" "current" {}
 
 data "archive_file" "rag_query" {
   type        = "zip"
@@ -21,13 +26,11 @@ resource "aws_lambda_function" "rag_query" {
   runtime          = "python3.12"
   role             = module.core_engine.lambda_exec_role_arn
   timeout          = 20
-  layers           = [module.core_engine.bedrock_helper_layer_arn]
 
   environment {
     variables = {
-      TABLE_DOCUMENTS   = module.document_extractor.table_name
-      TABLE_REVIEWS     = module.review_analyzer.table_name
-      TABLE_BOOKKEEPING = module.bookkeeping_tracker.table_name
+      KNOWLEDGE_BASE_ID = module.core_engine.rag_knowledge_base_id
+      MODEL_ARN         = "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:inference-profile/us.anthropic.claude-sonnet-4-6"
     }
   }
 

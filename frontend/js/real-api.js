@@ -57,10 +57,11 @@ window.RealAPI = (function () {
     listDocuments: () => listRecords("extract-document"),
     listReviewBatches: () => listRecords("analyze-reviews"),
     listBookkeepingBatches: () => listRecords("bookkeeping-query"),
-    // Scans the real DynamoDB table(s) for `viewContext` and asks Bedrock to
-    // answer grounded in that real data (see lambdas/rag-query/handler.py -
-    // not a formal Knowledge Base vector search, since nothing has been
-    // ingested into that index; a documented follow-up, not a mock).
+    // Real Bedrock Knowledge Base retrieval (S3 Vectors-backed vector
+    // search over ingested records) + a grounded answer with citations
+    // pointing at the actual S3 source files. `viewContext` is currently
+    // unused server-side - retrieval searches the whole index rather than
+    // being scoped per view - kept in the call for a future per-view filter.
     queryRag: async (question, viewContext) => {
       const response = await fetch(`${BASE_URL}/rag-query`, {
         method: "POST",

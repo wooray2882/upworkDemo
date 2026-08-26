@@ -5,6 +5,35 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `core/wire-rag-chat-to-knowledge-base`)
+- The Bedrock Knowledge Base (S3 Vectors-backed) was provisioned but had
+  never been populated - closed that gap: exported all 18 real DynamoDB
+  records to text, uploaded them to `upwork-demo-demo-rag-data` (the S3
+  data source), and ran a real ingestion job via
+  `bedrock-agent.start_ingestion_job` - completed 18/18 indexed, 0 failed.
+  Verified independently against the S3 Vectors API (23 vectors now
+  stored - chunking split some docs) and via `bedrock-agent-runtime.retrieve`
+  (correct top result by similarity score, not keyword match) before
+  touching any application code.
+- `lambdas/rag-query/handler.py` rewritten from the DynamoDB-scan
+  workaround to a real `retrieve_and_generate` call against the knowledge
+  base - real vector search + a grounded answer with citations pointing
+  at the actual ingested S3 files.
+- `modules/core-engine/rag-knowledge-base.tf`: new `bedrock_kb_query` IAM
+  policy on the shared exec role (`bedrock:Retrieve`,
+  `bedrock:RetrieveAndGenerate`, and `bedrock:GetInferenceProfile` -  the
+  last one only surfaced via a live `AccessDeniedException` after the
+  first two alone weren't sufficient; `RetrieveAndGenerate` resolves a
+  cross-region inference profile ARN via `GetInferenceProfile` internally).
+- `modelArn` must be the full inference-profile ARN, not the bare model id
+  string `invoke_model()` accepts elsewhere in this codebase - confirmed
+  live before wiring it into Terraform, not assumed.
+- Frontend `rag-chat.js`: citations now render as the real S3 URIs
+  returned by the backend, and clicking one highlights the actual matching
+  table row(s) (the `<type>-<uuid>.txt` filename embeds the same id
+  DynamoDB-derived table rows use) - verified live: a real citation
+  correctly highlighted 5 real rows from the same source batch.
+
 ### Added (branch: `feature/wire-remaining-mock-data`)
 - Removed every remaining mock/fabricated display in the frontend:
   - `bookkeeping.js`: removed the hardcoded "Total Revenue" and "Net Margin"
