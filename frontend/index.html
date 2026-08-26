@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Native Demo Platform | Reusable Portfolio Engine</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
+  <link rel="stylesheet" href="styles/tables.css">
+  <link rel="stylesheet" href="styles/chat.css">
+</head>
+<body>
+
+  <!-- App Header Bar -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">AWS Native Demo Platform</div>
+        <div class="brand-subtitle">Terraform + Step Functions + RAG Engine</div>
+      </div>
+    </div>
+
+    <!-- Demo Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="bookkeeping">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        Bookkeeping Tracker
+      </button>
+
+      <button class="nav-tab" data-tab="document-extract">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        Document Extractor
+      </button>
+
+      <button class="nav-tab" data-tab="review-analyzer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Review & Sentiment
+      </button>
+    </nav>
+
+    <!-- Right Header Controls -->
+    <div class="header-actions">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        AWS Bedrock KB Active
+      </div>
+
+      <button class="btn-secondary" onclick="App.toggleApiDrawer()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        Inspect AWS Payload
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App Shell -->
+  <div class="app-container">
+    
+    <!-- Dynamic View Content -->
+    <main class="main-content" id="view-content">
+      <!-- Active view rendered here via JS -->
+    </main>
+
+    <!-- Bedrock Knowledge Base RAG Chat Side Panel -->
+    <aside class="rag-chat-panel" id="rag-chat-panel">
+      <div class="chat-header">
+        <div class="chat-title-group">
+          <div class="chat-ai-icon">⚡</div>
+          <div>
+            <div class="chat-title">Bedrock RAG Assistant</div>
+            <div class="chat-subtitle">Conversational Vector Search</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="chat-messages" id="chat-messages-list">
+        <div class="message-wrapper assistant">
+          <div class="chat-bubble">
+            Hello! I'm your Bedrock Knowledge Base assistant. Ask me questions about your transactions, extracted documents, or customer reviews.
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Prompt Pills -->
+      <div class="prompt-pills-container">
+        <div class="pills-title">Suggested RAG Queries</div>
+        <div id="prompt-pills-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+
+      <!-- Chat Input Field -->
+      <div class="chat-input-area">
+        <input type="text" id="chat-input-field" class="chat-input" placeholder="Ask RAG assistant (e.g. 'Software spend?')...">
+        <button class="btn-send" onclick="RAGChat.sendPrompt()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- API Gateway Execution Debugger Drawer -->
+  <div class="api-drawer" id="api-drawer">
+    <div class="drawer-header">
+      <span style="font-weight: 700; font-size: 0.9rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        AWS API Gateway & Step Function Real-Time Execution Inspector
+      </span>
+      <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="App.toggleApiDrawer()">Close Inspector</button>
+    </div>
+    <div class="drawer-content">
+      <div class="drawer-log-box" id="drawer-req-log">// Waiting for API Gateway invocation...</div>
+      <div class="drawer-log-box" id="drawer-res-log">// Response payload will appear here...</div>
+      <div class="drawer-log-box" id="drawer-step-log">// Step Functions state execution metadata...</div>
+    </div>
+  </div>
+
+  <!-- JS Scripts -->
+  <script src="js/mock-api.js"></script>
+  <script src="js/components/charts.js"></script>
+  <script src="js/components/rag-chat.js"></script>
+  <script src="js/components/data-table.js"></script>
+  <script src="js/views/bookkeeping.js"></script>
+  <script src="js/views/document-extract.js"></script>
+  <script src="js/views/review-analyzer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
