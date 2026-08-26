@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime, timezone
 
 import boto3
+from bedrock_helper import to_dynamodb_safe
 
 TABLE_NAME = os.environ["TABLE_NAME"]
 FEATURE_NAME = os.environ["FEATURE_NAME"]
@@ -22,7 +23,7 @@ def lambda_handler(event, context):
         "id": str(uuid.uuid4()),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "raw_input_summary": event.get("raw_input_summary", ""),
-        "structured_result": event.get("structured_result", {}),
+        "structured_result": to_dynamodb_safe(event.get("structured_result", {})),
         "feature_type": FEATURE_NAME,
     }
     table.put_item(Item=item)

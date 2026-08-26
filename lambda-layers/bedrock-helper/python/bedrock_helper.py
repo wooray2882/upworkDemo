@@ -6,6 +6,7 @@ Bedrock client, retry logic, and JSON-response validation.
 import json
 import re
 import time
+from decimal import Decimal
 
 import boto3
 
@@ -64,3 +65,18 @@ def invoke_model(prompt: str, model_id: str | None = None) -> dict:
             time.sleep(BACKOFF_SECONDS * (attempt + 1))
 
     raise ValueError(f"Bedrock call failed after retries: {last_error}")
+
+
+def to_dynamodb_safe(value):
+    """Recursively converts float -> Decimal so boto3's DynamoDB resource
+    API accepts it (it rejects native Python floats outright). Bedrock's
+    JSON responses commonly include float fields (e.g. amounts) - a live
+    test against the bookkeeping-query feature caught
+    `TypeError: Float types are not supported. Use Decimal types instead.`"""
+    if isinstance(value, float):
+        return Decimal(str(value))
+    if isinstance(value, dict):
+        return {k: to_dynamodb_safe(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [to_dynamodb_safe(v) for v in value]
+    return value
