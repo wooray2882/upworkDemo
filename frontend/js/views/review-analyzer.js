@@ -45,9 +45,9 @@ window.ReviewAnalyzerView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800;">Sentiment & Review Analyzer</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800;">Review &amp; Sentiment</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
-              Route: <code>/analyze-reviews</code> — Batch sentiment scoring, pain-point extraction & topic clustering via AWS Bedrock.
+              Automatically scores customer sentiment and surfaces common pain points and themes.
             </p>
           </div>
           <button class="btn-secondary" onclick="ReviewAnalyzerView.analyzeBatch()">
@@ -66,7 +66,7 @@ window.ReviewAnalyzerView = {
             <div class="kpi-value">${positiveRate.toFixed(1)}%</div>
             <div class="kpi-footer">
               <span class="trend-pill up">${positiveCount} of ${data.length} Reviews</span>
-              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "live from DynamoDB" : "loading..."}</span>
+              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "up to date" : "loading..."}</span>
             </div>
           </div>
 
@@ -97,7 +97,7 @@ window.ReviewAnalyzerView = {
         <!-- Review Data Table -->
         <div class="glass-card">
           <div class="chart-card-header">
-            <div class="chart-title">Customer Review Entries & AI Analysis</div>
+            <div class="chart-title">Customer Review Entries</div>
           </div>
           <div id="review-table-container"></div>
         </div>
@@ -124,12 +124,12 @@ window.ReviewAnalyzerView = {
   },
 
   analyzeBatch: async () => {
-    App.showToast("Sending review batch to /analyze-reviews...");
+    App.showToast("Analyzing review batch...");
     const data = MockAPI.getReviewData();
     const reviewsText = data.map(r => `[${r.rating} stars] ${r.author}: ${r.text}`).join("\n");
     try {
       const result = await RealAPI.analyzeReviews(reviewsText);
-      App.showToast("Review sentiment & topic extraction completed!");
+      App.showToast("Review analysis complete!");
       App.logApiExecution("POST /analyze-reviews", { reviews_text: reviewsText }, result);
       // Refresh from DynamoDB so the new batch shows up immediately instead
       // of only after a full page reload.

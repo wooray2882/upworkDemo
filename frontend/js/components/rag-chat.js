@@ -118,7 +118,7 @@ window.RAGChat = (function() {
     msgDiv.className = "message-wrapper assistant fade-in";
     msgDiv.innerHTML = `
       <div class="chat-bubble" style="color: var(--text-muted); font-style: italic;">
-        Querying Bedrock over live DynamoDB records...
+        Looking into your data...
       </div>
     `;
     container.appendChild(msgDiv);
