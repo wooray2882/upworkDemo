@@ -25,7 +25,10 @@ def load_prompt(path: str, **kwargs) -> str:
 def invoke_model(prompt: str, model_id: str | None = None) -> dict:
     """Calls Bedrock and returns parsed JSON. Retries on throttling/transient
     errors; raises ValueError if the model does not return valid JSON."""
-    model_id = model_id or "anthropic.claude-3-haiku-20240307-v1:0"
+    # Cross-region inference profile ID, not a direct on-demand model ID —
+    # this account requires it for anthropic.claude-sonnet-4-6 (confirmed
+    # via a live invoke-model test, not assumed).
+    model_id = model_id or "us.anthropic.claude-sonnet-4-6"
 
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",

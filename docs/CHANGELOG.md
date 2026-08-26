@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-bedrock-model-id`)
+- `bedrock_helper.py`'s default model ID (`anthropic.claude-3-haiku-20240307-v1:0`)
+  is deprecated/legacy in this AWS account and returns `ResourceNotFoundException`
+  on invoke. Confirmed via a live `aws bedrock-runtime invoke-model` test, not
+  assumed. Switched to `us.anthropic.claude-sonnet-4-6`, a cross-region
+  inference profile ID (direct on-demand invocation of
+  `anthropic.claude-sonnet-4-6` is rejected — Bedrock requires the
+  inference profile ID for this model), confirmed working with a live
+  invoke. Updated the (currently unwired) `bedrock_model_id` Terraform
+  variable default to match for documentation purposes.
+
 ### Added (branch: `feature/bookkeeping-query`)
 - `bookkeeping-query` feature: prompt template, AI-call and postprocess
   Lambda handlers, wired into `infrastructure/environments/demo/main.tf`.
