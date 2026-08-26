@@ -5,7 +5,6 @@ modules/feature/lambda.tf) with the request input, and calls Bedrock via
 the shared bedrock_helper layer. Returns the raw model JSON response for
 the next state (StoreResult) to persist.
 """
-import json
 import os
 
 from bedrock_helper import invoke_model, render_prompt
@@ -14,8 +13,12 @@ PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 
 
 def lambda_handler(event, context):
-    body = json.loads(event.get("body") or "{}")
-    document_text = body.get("document_text", "")
+    # event is the Step Functions execution input directly (the API
+    # Gateway integration maps $request.body straight into it) - not an
+    # API-Gateway-proxy-style {"body": "<json string>"} envelope. A live
+    # test caught this: event.get("body") was always None, silently
+    # producing an empty prompt.
+    document_text = event.get("document_text", "")
 
     prompt = render_prompt(PROMPT_TEXT, document_text=document_text)
     result = invoke_model(prompt)
