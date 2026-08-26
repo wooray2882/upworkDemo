@@ -144,3 +144,32 @@ resource "aws_bedrockagent_data_source" "rag" {
     }
   }
 }
+
+# Lets feature Lambdas (e.g. the rag-query Lambda, environments/demo/rag-query.tf)
+# query this knowledge base directly via bedrock-agent-runtime Retrieve /
+# RetrieveAndGenerate, attached to the same shared exec role every Lambda uses.
+resource "aws_iam_role_policy" "bedrock_kb_query" {
+  name = "${var.project_name}-bedrock-kb-query"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["bedrock:Retrieve", "bedrock:RetrieveAndGenerate"]
+        Resource = aws_bedrockagent_knowledge_base.rag.arn
+      },
+      {
+        # RetrieveAndGenerate resolves the model ARN via GetInferenceProfile
+        # when a cross-region inference profile is passed (this account
+        # requires one for anthropic.claude-sonnet-4-6). Caught live: the
+        # first deploy failed with AccessDeniedException on exactly this
+        # action before it was added.
+        Effect   = "Allow"
+        Action   = "bedrock:GetInferenceProfile"
+        Resource = "arn:aws:bedrock:*:*:inference-profile/*"
+      }
+    ]
+  })
+}

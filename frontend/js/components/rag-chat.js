@@ -54,16 +54,26 @@ window.RAGChat = (function() {
     // Show Typing Indicator
     const typingId = appendTypingIndicator();
 
-    // Query the real backend (scans real DynamoDB records for this view's
-    // feature and asks Bedrock to answer grounded in that data).
+    // Query the real Bedrock Knowledge Base (S3 Vectors-backed retrieval,
+    // see lambdas/rag-query/handler.py) for this view's context.
     try {
       const response = await RealAPI.queryRag(query, activeContextView);
       removeMessage(typingId);
-      appendMessage(response.answer, "assistant");
+      appendMessage(response.answer, "assistant", response.citations || []);
     } catch (err) {
       removeMessage(typingId);
       appendMessage(`Query failed: ${err.message}`, "assistant");
     }
+  };
+
+  // Citations are real S3 URIs like
+  // "s3://upwork-demo-demo-rag-data/reviews-af4646c7-....txt" - the
+  // "<type>-<uuid>" filename matches how table row IDs are built
+  // (`${batch.id.slice(0,8)}-${index}`, see bookkeeping.js/review-analyzer.js),
+  // so the first 8 chars of the uuid double as a real row-highlight key.
+  const citationToRowPrefix = (uri) => {
+    const match = uri.match(/[a-f0-9]{8}(?=-[a-f0-9]{4}-)/);
+    return match ? match[0] : null;
   };
 
   const appendMessage = (text, sender, citations = []) => {
@@ -75,12 +85,16 @@ window.RAGChat = (function() {
 
     let citationHtml = "";
     if (citations.length > 0) {
-      citationHtml = citations.map(c => `
-        <span class="rag-citation" onclick="RAGChat.highlightSource('${c.rowId}')">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path></svg>
-          ${c.label}
-        </span>
-      `).join(" ");
+      citationHtml = citations.map(uri => {
+        const fileName = uri.split("/").pop();
+        const rowPrefix = citationToRowPrefix(uri);
+        return `
+          <span class="rag-citation" onclick="RAGChat.highlightSource('${rowPrefix}')" title="${uri}">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path></svg>
+            ${fileName}
+          </span>
+        `;
+      }).join(" ");
     }
 
     msgDiv.innerHTML = `
@@ -118,17 +132,21 @@ window.RAGChat = (function() {
     if (el) el.remove();
   };
 
-  const highlightSource = (rowId) => {
+  const highlightSource = (rowPrefix) => {
+    if (!rowPrefix || rowPrefix === "null") return;
+
     // Clear existing highlights
     document.querySelectorAll(".row-highlight").forEach(r => r.classList.remove("row-highlight"));
 
-    const row = document.getElementById(`row-${rowId}`);
-    if (row) {
-      row.classList.add("row-highlight");
-      row.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      // Toast notification
-      if (window.App) window.App.showToast(`Highlighted RAG citation row: ${rowId}`);
+    // Table row IDs are "<8-char-prefix>-<index>" (one batch can produce
+    // several rows), so match on prefix rather than an exact id.
+    const rows = document.querySelectorAll(`[id^="row-${rowPrefix}"]`);
+    if (rows.length > 0) {
+      rows.forEach(row => row.classList.add("row-highlight"));
+      rows[0].scrollIntoView({ behavior: "smooth", block: "center" });
+      if (window.App) window.App.showToast(`Highlighted ${rows.length} row(s) from this citation`);
+    } else if (window.App) {
+      window.App.showToast("Source record isn't in the currently visible table");
     }
   };
 
