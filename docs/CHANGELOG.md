@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-dynamodb-float-serialization`)
+- `bookkeeping-query` (the first feature whose Bedrock output contains
+  float fields, e.g. `amount`) failed with `TypeError: Float types are
+  not supported. Use Decimal types instead.` on `table.put_item()` — boto3's
+  DynamoDB resource API rejects native Python floats. Added
+  `bedrock_helper.to_dynamodb_safe()` (recursive float→Decimal
+  conversion) and applied it in all three `postprocess/handler.py` files.
+  Also discovered the postprocess Lambdas never had the shared Bedrock
+  helper layer attached at all (`modules/feature/lambda.tf`) — added it.
+  Confirmed fixed with a real bookkeeping-query request.
+
 ### Fixed (branch: `core/fix-lambda-event-shape`)
 - A "successful" end-to-end test returned an empty result
   (`document_type: null, key_fields: {}`). Traced via CloudWatch logs: all

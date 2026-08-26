@@ -48,6 +48,7 @@ resource "aws_lambda_function" "postprocess" {
   runtime          = "python3.12"
   role             = var.lambda_exec_role_arn
   timeout          = 30
+  layers           = [var.bedrock_helper_layer_arn] # for bedrock_helper.to_dynamodb_safe()
 
   environment {
     variables = {
