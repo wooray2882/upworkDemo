@@ -5,6 +5,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-prompt-loading-in-lambda`)
+- Live testing surfaced `FileNotFoundError: [Errno 2] No such file or
+  directory: '../../../prompts/document-extractor.txt'`. Every AI-call
+  Lambda's `PROMPT_PATH` env var held a path that only exists on the
+  machine running `terraform apply` (relative to the Terraform module),
+  not inside the deployed Lambda package. Fixed by reading the prompt file
+  into a `PROMPT_TEXT` env var at apply time (`file(var.prompt_path)` in
+  `infrastructure/modules/feature/lambda.tf`) and templating it in-Lambda —
+  renamed `bedrock_helper.load_prompt(path, **kwargs)` (file I/O) to
+  `render_prompt(template, **kwargs)` (string templating only), and
+  updated all three feature `ai-call/handler.py` files to match.
+
 ### Fixed (branch: `core/fix-sfn-lambda-invoke-policy`)
 - Live testing surfaced `AccessDeniedException: ... is not authorized to
   perform lambda:InvokeFunction`. The shared Step Functions exec role's

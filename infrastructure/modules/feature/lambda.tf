@@ -20,7 +20,10 @@ resource "aws_lambda_function" "ai_call" {
 
   environment {
     variables = {
-      PROMPT_PATH  = var.prompt_path
+      # The prompt file lives at var.prompt_path only on the machine
+      # running `terraform apply` - it doesn't exist inside the deployed
+      # Lambda package. Read at plan/apply time and baked in as text.
+      PROMPT_TEXT  = file(var.prompt_path)
       TABLE_NAME   = aws_dynamodb_table.this.name
       FEATURE_NAME = var.feature_name
     }
