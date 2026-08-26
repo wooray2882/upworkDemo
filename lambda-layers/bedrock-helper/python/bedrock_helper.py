@@ -4,9 +4,19 @@ Every feature's AI-call Lambda imports this instead of writing its own
 Bedrock client, retry logic, and JSON-response validation.
 """
 import json
+import re
 import time
 
 import boto3
+
+_CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
+
+
+def _strip_code_fences(text: str) -> str:
+    """Claude models frequently wrap JSON output in ```json ... ``` fences
+    even when explicitly told to return only JSON. Confirmed via a live
+    invoke-model call against us.anthropic.claude-sonnet-4-6."""
+    return _CODE_FENCE_RE.sub("", text.strip()).strip()
 
 _client = boto3.client("bedrock-runtime")
 
@@ -45,7 +55,7 @@ def invoke_model(prompt: str, model_id: str | None = None) -> dict:
             response = _client.invoke_model(modelId=model_id, body=body)
             payload = json.loads(response["body"].read())
             text = payload["content"][0]["text"]
-            return json.loads(text)
+            return json.loads(_strip_code_fences(text))
         except (json.JSONDecodeError, KeyError, IndexError) as exc:
             last_error = exc
             break  # malformed model output — retrying won't help

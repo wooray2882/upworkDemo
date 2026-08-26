@@ -5,6 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-bedrock-json-code-fences`)
+- Live testing surfaced `ValueError: Bedrock call failed after retries:
+  Expecting value: line 1 column 1 (char 0)`. Reproduced directly against
+  Bedrock (`aws bedrock-runtime invoke-model`) with the real
+  document-extractor prompt: `us.anthropic.claude-sonnet-4-6` wraps its
+  JSON output in ` ```json ... ``` ` code fences despite the prompt's
+  explicit "return ONLY valid JSON" instruction. Added
+  `bedrock_helper._strip_code_fences()`, applied before `json.loads()` in
+  `invoke_model()`. Verified against the captured raw model response.
+
 ### Fixed (branch: `core/fix-prompt-loading-in-lambda`)
 - Live testing surfaced `FileNotFoundError: [Errno 2] No such file or
   directory: '../../../prompts/document-extractor.txt'`. Every AI-call
