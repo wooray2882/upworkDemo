@@ -54,12 +54,16 @@ window.RAGChat = (function() {
     // Show Typing Indicator
     const typingId = appendTypingIndicator();
 
-    // Query Mock RAG Knowledge Base
-    const response = await MockAPI.queryRAGKnowledgeBase(query, activeContextView);
-
-    // Remove Typing & Append AI Response
-    removeMessage(typingId);
-    appendMessage(response.answer, "assistant", response.citations);
+    // Query the real backend (scans real DynamoDB records for this view's
+    // feature and asks Bedrock to answer grounded in that data).
+    try {
+      const response = await RealAPI.queryRag(query, activeContextView);
+      removeMessage(typingId);
+      appendMessage(response.answer, "assistant");
+    } catch (err) {
+      removeMessage(typingId);
+      appendMessage(`Query failed: ${err.message}`, "assistant");
+    }
   };
 
   const appendMessage = (text, sender, citations = []) => {
@@ -100,7 +104,7 @@ window.RAGChat = (function() {
     msgDiv.className = "message-wrapper assistant fade-in";
     msgDiv.innerHTML = `
       <div class="chat-bubble" style="color: var(--text-muted); font-style: italic;">
-        Bedrock KB Vector Search running...
+        Querying Bedrock over live DynamoDB records...
       </div>
     `;
     container.appendChild(msgDiv);
