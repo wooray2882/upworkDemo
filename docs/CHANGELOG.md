@@ -5,6 +5,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/document-upload-ocr`)
+- Real file upload support for `extract-document`: the AI-call Lambda now
+  accepts `document_base64` + `media_type` (PDF or image) in addition to
+  plain `document_text`. Claude reads the document directly via Bedrock's
+  native `document`/`image` content blocks — this IS the OCR step, no
+  separate Textract or OCR service involved. Verified live against both
+  `application/pdf` and `image/png` via direct `invoke-model` calls before
+  wiring it into the Lambda.
+- Added `bedrock_helper.invoke_model_with_file()` and
+  `render_file_mode_prompt()` (shared layer) and a
+  `MAX_FILE_BASE64_BYTES` guard (~4.5MB) reflecting Lambda's 6MB
+  synchronous invoke payload limit.
+- Frontend: real file picker on the Document Extractor view, reading the
+  file as base64 client-side and POSTing it to `/extract-document`.
+
 ### Added (branch: `feat/wire-frontend-to-real-backend`)
 - `frontend/js/config.js` (deployed `API_BASE_URL`) and
   `frontend/js/real-api.js` (a real API client calling the deployed API
