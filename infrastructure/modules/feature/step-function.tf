@@ -5,6 +5,10 @@
 resource "aws_sfn_state_machine" "this" {
   name     = "${var.feature_name}-${var.environment}"
   role_arn = var.step_functions_exec_role_arn
+  # EXPRESS is required for the API Gateway integration's
+  # StartSyncExecution subtype (see api-route.tf) - STANDARD state machines
+  # don't support synchronous execution.
+  type = "EXPRESS"
 
   definition = jsonencode({
     Comment = "Core engine pattern: validate -> AI call -> store -> respond"

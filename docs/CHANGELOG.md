@@ -5,6 +5,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-express-state-machine`)
+- A live end-to-end test against the deployed API (`POST /extract-document`)
+  returned `StateMachineTypeNotSupported: This operation is not supported by
+  this type of state machine`. The API Gateway integration uses
+  `StartSyncExecution` (see `infrastructure/modules/feature/api-route.tf`),
+  which only works against **Express** state machines — the feature module's
+  `aws_sfn_state_machine` had no `type` set, defaulting to `STANDARD`. Added
+  `type = "EXPRESS"` to `infrastructure/modules/feature/step-function.tf`.
+
 ### Fixed (branch: `core/fix-embedding-model-arn-region`)
 - `terraform apply` against a real AWS account (000622214837) rejected the
   embedding model ARN `arn:aws:bedrock:*::foundation-model/...` — Bedrock's
