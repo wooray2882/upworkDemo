@@ -57,6 +57,7 @@ module "document_extractor" {
   api_id                       = module.core_engine.api_id
   api_execution_arn            = module.core_engine.api_execution_arn
   lambda_exec_role_arn         = module.core_engine.lambda_exec_role_arn
+  lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
 }
@@ -74,6 +75,7 @@ module "review_analyzer" {
   api_id                       = module.core_engine.api_id
   api_execution_arn            = module.core_engine.api_execution_arn
   lambda_exec_role_arn         = module.core_engine.lambda_exec_role_arn
+  lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
 }
@@ -91,6 +93,7 @@ module "bookkeeping_tracker" {
   api_id                       = module.core_engine.api_id
   api_execution_arn            = module.core_engine.api_execution_arn
   lambda_exec_role_arn         = module.core_engine.lambda_exec_role_arn
+  lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
 }

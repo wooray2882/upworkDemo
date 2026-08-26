@@ -65,6 +65,11 @@ variable "lambda_exec_role_arn" {
   type        = string
 }
 
+variable "lambda_exec_role_name" {
+  description = "Shared Lambda execution role NAME from the core-engine module - used to attach this feature's table-scoped DynamoDB policy to the shared role."
+  type        = string
+}
+
 variable "bedrock_helper_layer_arn" {
   description = "Shared Bedrock helper Lambda layer ARN from the core-engine module."
   type        = string
