@@ -12,3 +12,8 @@ output "review_analyzer_route" {
   description = "Full path for the analyze-reviews feature."
   value       = module.review_analyzer.route_path
 }
+
+output "bookkeeping_tracker_route" {
+  description = "Full path for the bookkeeping-query feature."
+  value       = module.bookkeeping_tracker.route_path
+}

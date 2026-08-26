@@ -78,17 +78,19 @@ module "review_analyzer" {
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
 }
 
-# module "bookkeeping_tracker" {
-#   source              = "../../modules/feature"
-#   feature_name        = "bookkeeping-query"
-#   prompt_path         = "../../../prompts/bookkeeping.txt"
-#   lambda_source_dir   = "../../../lambdas/bookkeeping-query"
-#   has_postprocess_lambda = true
-#   environment         = "demo"
-#   tags                = local.common_tags
-#   api_id                       = module.core_engine.api_id
-#   api_execution_arn            = module.core_engine.api_execution_arn
-#   lambda_exec_role_arn         = module.core_engine.lambda_exec_role_arn
-#   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
-#   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
-# }
+module "bookkeeping_tracker" {
+  source = "../../modules/feature"
+
+  feature_name           = "bookkeeping-query"
+  prompt_path            = "../../../prompts/bookkeeping.txt"
+  lambda_source_dir      = "../../../lambdas/bookkeeping-query"
+  has_postprocess_lambda = true
+  environment            = "demo"
+  tags                   = local.common_tags
+
+  api_id                       = module.core_engine.api_id
+  api_execution_arn            = module.core_engine.api_execution_arn
+  lambda_exec_role_arn         = module.core_engine.lambda_exec_role_arn
+  bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
+  step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
+}

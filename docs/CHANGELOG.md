@@ -5,6 +5,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/bookkeeping-query`)
+- `bookkeeping-query` feature: prompt template, AI-call and postprocess
+  Lambda handlers, wired into `infrastructure/environments/demo/main.tf`.
+  This is the "harder case" from the design doc — validates that the same
+  extraction pattern plus the shared RAG layer supports ongoing
+  conversational queries over accumulated records (e.g. "how much did I
+  spend on software last month"), not just one-shot extraction.
+
 ### Added (branch: `feature/analyze-reviews`)
 - `analyze-reviews` feature: prompt template, AI-call and postprocess Lambda
   handlers, wired into `infrastructure/environments/demo/main.tf`.
