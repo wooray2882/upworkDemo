@@ -4,6 +4,7 @@
 
 window.DocumentExtractView = {
   activePreset: "invoice",
+  liveResults: {}, // presetKey -> real extractedJSON returned by the backend
 
   render: () => {
     const mainEl = document.getElementById("view-content");
@@ -11,6 +12,7 @@ window.DocumentExtractView = {
 
     const presets = MockAPI.getDocumentPresets();
     const current = presets[DocumentExtractView.activePreset];
+    const displayedJSON = DocumentExtractView.liveResults[DocumentExtractView.activePreset] || current.extractedJSON;
 
     mainEl.innerHTML = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 20px;">
@@ -44,7 +46,7 @@ window.DocumentExtractView = {
           <div class="doc-viewer-panel">
             <div class="panel-header">
               <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">${current.title}</span>
-              <span class="status-pill categorized">Confidence: ${Math.round(current.extractedJSON.confidence_score * 100)}%</span>
+              <span class="status-pill categorized">${DocumentExtractView.liveResults[DocumentExtractView.activePreset] ? "Live Bedrock Result" : `Confidence: ${Math.round(current.extractedJSON.confidence_score * 100)}%`}</span>
             </div>
             <div class="doc-preview-area" id="doc-preview">
               <div class="invoice-preview-card">
@@ -76,7 +78,7 @@ window.DocumentExtractView = {
               </div>
 
               <div class="json-editor-container">
-                ${DocumentExtractView.formatJSON(current.extractedJSON)}
+                ${DocumentExtractView.formatJSON(displayedJSON)}
               </div>
 
             </div>
@@ -99,9 +101,15 @@ window.DocumentExtractView = {
     App.showToast("Invoking AWS Step Function /extract-document...");
     const presets = MockAPI.getDocumentPresets();
     const current = presets[DocumentExtractView.activePreset];
-    const result = await MockAPI.executeStepFunction("extract-document", { fileName: current.fileName });
-    App.showToast("Bedrock extraction completed cleanly!");
-    App.logApiExecution("POST /extract-document", { file: current.fileName }, result);
+    try {
+      const result = await RealAPI.extractDocument(current.rawText);
+      DocumentExtractView.liveResults[DocumentExtractView.activePreset] = result.output.structured_result;
+      App.showToast("Bedrock extraction completed cleanly!");
+      App.logApiExecution("POST /extract-document", { document_text: current.rawText }, result);
+      DocumentExtractView.render();
+    } catch (err) {
+      App.showToast(`Extraction failed: ${err.message}`);
+    }
   },
 
   formatJSON: (obj) => {

@@ -5,6 +5,25 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feat/wire-frontend-to-real-backend`)
+- `frontend/js/config.js` (deployed `API_BASE_URL`) and
+  `frontend/js/real-api.js` (a real API client calling the deployed API
+  Gateway routes, returning the same shape `MockAPI.executeStepFunction()`
+  did so the existing drawer-logging code needed no changes).
+- Wired all three views' "run" actions
+  (`DocumentExtractView.reRunExtraction`, `ReviewAnalyzerView.analyzeBatch`,
+  `BookkeepingView.simulateBatchUpload`) to call `RealAPI` with real
+  request bodies (`document_text`/`reviews_text`/`transactions_text`)
+  instead of the mocked `MockAPI.executeStepFunction()` calls, and to
+  display the real Bedrock-extracted result. Read-only initial table/chart
+  data (`MockAPI.getBookkeepingData/getReviewData/getDocumentPresets`) is
+  intentionally left as local sample data — there is no GET route to list
+  stored records back from DynamoDB (out of scope for this pass).
+- Verified end-to-end against the deployed backend via the actual browser
+  UI: all three routes return real Bedrock-extracted results and the
+  AWS API inspector panel shows real execution ARNs and `SUCCEEDED` status.
+- Added `.claude/launch.json` (local static frontend server on port 3000).
+
 ### Fixed (branch: `core/fix-dynamodb-float-serialization`)
 - `bookkeeping-query` (the first feature whose Bedrock output contains
   float fields, e.g. `amount`) failed with `TypeError: Float types are
