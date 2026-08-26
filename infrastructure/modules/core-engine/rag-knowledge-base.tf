@@ -109,6 +109,8 @@ resource "aws_iam_role_policy" "bedrock_kb_embed_model" {
 
 # --- Bedrock Knowledge Base --------------------------------------------
 
+data "aws_region" "current" {}
+
 resource "aws_bedrockagent_knowledge_base" "rag" {
   name     = "${var.project_name}-${var.environment}-rag"
   role_arn = aws_iam_role.bedrock_kb_role.arn
@@ -116,7 +118,7 @@ resource "aws_bedrockagent_knowledge_base" "rag" {
   knowledge_base_configuration {
     type = "VECTOR"
     vector_knowledge_base_configuration {
-      embedding_model_arn = "arn:aws:bedrock:*::foundation-model/${var.embedding_model_id}"
+      embedding_model_arn = "arn:aws:bedrock:${data.aws_region.current.region}::foundation-model/${var.embedding_model_id}"
     }
   }
 

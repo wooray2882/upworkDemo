@@ -5,6 +5,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `core/fix-embedding-model-arn-region`)
+- `terraform apply` against a real AWS account (000622214837) rejected the
+  embedding model ARN `arn:aws:bedrock:*::foundation-model/...` — Bedrock's
+  `CreateKnowledgeBase` validates this ARN against a regex that does not
+  allow a wildcard region. Added `data "aws_region" "current"` to
+  `rag-knowledge-base.tf` and built the ARN with the real region
+  (`arn:aws:bedrock:${data.aws_region.current.region}::foundation-model/...`).
+  Confirmed with a successful `terraform apply` (46 resources created,
+  including the Bedrock Knowledge Base and S3 Vectors index) against the
+  real account.
+
 ### Fixed (branch: `core/fix-bedrock-model-id`)
 - `bedrock_helper.py`'s default model ID (`anthropic.claude-3-haiku-20240307-v1:0`)
   is deprecated/legacy in this AWS account and returns `ResourceNotFoundException`
