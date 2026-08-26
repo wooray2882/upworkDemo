@@ -11,9 +11,9 @@ variable "environment" {
 }
 
 variable "bedrock_model_id" {
-  description = "Bedrock model ID used by the shared AI-call Lambda layer."
+  description = "Bedrock model ID (or cross-region inference profile ID) used by the shared AI-call Lambda layer. Not currently wired to the Lambdas as an env var — the default in lambda-layers/bedrock-helper/python/bedrock_helper.py is the source of truth; kept here for documentation/future wiring."
   type        = string
-  default     = "anthropic.claude-3-haiku-20240307-v1:0"
+  default     = "us.anthropic.claude-sonnet-4-6"
 }
 
 variable "embedding_model_id" {
