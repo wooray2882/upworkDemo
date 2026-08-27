@@ -5,6 +5,34 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/landing-page-simplification`)
+- Every link on all three landing pages that pointed at the full dashboard
+  (`../index.html`, unscoped - logo click, "Full Platform" nav button,
+  closing pitch CTA, footer "Main Dashboard" link) now points at that
+  page's own scoped `?app=` URL instead, per explicit direction: a client
+  landing on the Review Tracker page should only ever be able to reach
+  the Review & Sentiment view, never the full 3-tab dashboard. Verified
+  live by clicking each of these buttons on all three pages and checking
+  which nav tabs were visible afterward.
+- Renamed "Full Platform" / "View Full Demo Platform" to "Full Demo"
+  everywhere, per direct request.
+- Removed the interactive ROI/time-savings calculator section and the
+  interactive live sandbox simulator (fake pipeline-step animation, fake
+  timer, fake JSON output) from all three pages entirely - per feedback
+  that they were "distracting" and "unnecessary." Replaced with: a single
+  plain sentence in the hero ("saves real time and money every month..."),
+  and a short "How It Runs" section describing the actual process in
+  plain language plus one "Go Try the Demo" button that links straight to
+  the real, scoped app.
+- Deleted `components/landing-calculator.js` and
+  `components/landing-sandbox.js` (no longer referenced by anything).
+- Hero's primary CTA ("Try Demo Batch Live" / "Test Live Sandbox") now
+  also links directly to the scoped app instead of anchor-scrolling to
+  the now-removed sandbox section; the secondary "Calculate ___ Savings"
+  button was dropped along with the calculator section it pointed to.
+- Nav links trimmed to match what's left on the page (Batch Speed, How
+  It Works, FAQ) - the anchors for the removed sections no longer exist.
+
 ### Added (branch: `feature/portfolio-landing-pages`)
 - Three per-feature portfolio landing pages (`frontend/landing/{document-extract,finance-tracker,review-tracker}.html`)
   for linking clients to just the feature relevant to them, separate from
