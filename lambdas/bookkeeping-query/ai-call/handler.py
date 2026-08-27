@@ -6,23 +6,56 @@ side of the feature — the conversational "ask questions about my spend"
 side is served separately by querying the shared RAG knowledge base
 (see docs/architecture.md, "Validating the design: bookkeeping/revenue
 tracker").
+
+Supports two input modes:
+  - transactions_text: plain text (existing behavior)
+  - s3_key: an uploaded file (see modules/core-engine/file-uploads.tf) - a
+    .xlsx expense sheet is parsed directly into rows (no AI call needed for
+    extraction, since the data's already structured); a PDF/image receipt
+    is read directly by Claude's document/vision support, same as
+    extract-document already does - no Textract involved.
 """
+import base64
 import os
 
-from bedrock_helper import invoke_model, render_prompt
+from bedrock_helper import (
+    guess_media_type,
+    invoke_model,
+    invoke_model_with_file,
+    parse_xlsx_rows,
+    read_s3_object,
+    render_file_mode_prompt,
+    render_prompt,
+)
 
 PROMPT_TEXT = os.environ["PROMPT_TEXT"]
+UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
 
 
 def lambda_handler(event, context):
     # event is the Step Functions execution input directly, not an
     # API-Gateway-proxy-style {"body": "<json string>"} envelope.
-    transactions_text = event.get("transactions_text", "")
+    s3_key = event.get("s3_key")
 
-    prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
-    result = invoke_model(prompt)
+    if s3_key:
+        file_bytes = read_s3_object(UPLOADS_BUCKET, s3_key)
+        if s3_key.lower().endswith(".xlsx"):
+            transactions_text = parse_xlsx_rows(file_bytes)
+            prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
+            result = invoke_model(prompt)
+            raw_input_summary = f"uploaded expense sheet ({s3_key})"
+        else:
+            media_type = guess_media_type(s3_key)
+            prompt = render_file_mode_prompt(PROMPT_TEXT)
+            result = invoke_model_with_file(prompt, base64.b64encode(file_bytes).decode(), media_type)
+            raw_input_summary = f"uploaded {media_type} receipt"
+    else:
+        transactions_text = event.get("transactions_text", "")
+        prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
+        result = invoke_model(prompt)
+        raw_input_summary = f"{result.get('transaction_count', '?')} transactions extracted"
 
     return {
-        "raw_input_summary": f"{result.get('transaction_count', '?')} transactions extracted",
+        "raw_input_summary": raw_input_summary,
         "structured_result": result,
     }

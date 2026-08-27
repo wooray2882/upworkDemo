@@ -54,6 +54,30 @@ window.RealAPI = (function () {
     extractDocumentFile: (documentBase64, mediaType) => callFeature("extract-document", { document_base64: documentBase64, media_type: mediaType }),
     analyzeReviews: (reviewsText) => callFeature("analyze-reviews", { reviews_text: reviewsText }),
     queryBookkeeping: (transactionsText) => callFeature("bookkeeping-query", { transactions_text: transactionsText }),
+    // Shared presigned-upload flow (see components/file-upload-modal.js and
+    // infrastructure/modules/core-engine/file-uploads.tf) - every feature's
+    // file upload goes through this same presign endpoint before PUTting
+    // straight to S3, then POSTs the s3_key to the feature's own route
+    // below instead of raw text/base64.
+    presignUpload: async (fileName, contentType) => {
+      const response = await fetch(`${BASE_URL}/uploads/presign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ file_name: fileName, content_type: contentType })
+      });
+      if (!response.ok) throw new Error(`POST /uploads/presign failed: ${response.status}`);
+      return response.json();
+    },
+    uploadToS3: async (uploadUrl, file) => {
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+        body: file
+      });
+      if (!response.ok) throw new Error(`S3 upload failed: ${response.status}`);
+    },
+    analyzeReviewsFile: (s3Key) => callFeature("analyze-reviews", { s3_key: s3Key }),
+    queryBookkeepingFile: (s3Key) => callFeature("bookkeeping-query", { s3_key: s3Key }),
     listDocuments: () => listRecords("extract-document"),
     listReviewBatches: () => listRecords("analyze-reviews"),
     listBookkeepingBatches: () => listRecords("bookkeeping-query"),

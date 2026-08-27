@@ -79,3 +79,9 @@ variable "step_functions_exec_role_arn" {
   description = "Shared Step Functions execution role ARN from the core-engine module."
   type        = string
 }
+
+variable "uploads_bucket" {
+  description = "Shared presigned-upload S3 bucket name from the core-engine module. Only features whose ai-call Lambda reads uploaded files (s3_key input) need this - pass \"\" for features that don't."
+  type        = string
+  default     = ""
+}

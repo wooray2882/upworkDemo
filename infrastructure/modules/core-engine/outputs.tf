@@ -47,3 +47,8 @@ output "rag_vector_bucket_arn" {
   description = "ARN of the S3 Vectors bucket backing the knowledge base (not OpenSearch)."
   value       = aws_s3vectors_vector_bucket.rag.vector_bucket_arn
 }
+
+output "uploads_bucket" {
+  description = "S3 bucket for presigned file uploads. Feature ai-call Lambdas read from this bucket when the request carries an s3_key instead of raw text/base64."
+  value       = aws_s3_bucket.uploads.bucket
+}
