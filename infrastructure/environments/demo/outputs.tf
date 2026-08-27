@@ -17,3 +17,8 @@ output "bookkeeping_tracker_route" {
   description = "Full path for the bookkeeping-query feature."
   value       = module.bookkeeping_tracker.route_path
 }
+
+output "frontend_url" {
+  description = "Public HTTPS URL for the deployed frontend (bare = every feature; append ?app=bookkeeping / ?app=document-extract / ?app=review-analyzer to scope a link to one feature)."
+  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+}
