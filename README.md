@@ -106,6 +106,20 @@ citations back to the ingested S3 source files, which highlight the
 matching table row(s) when clicked. `GET /<feature-name>` routes list
 stored records back out of DynamoDB for each feature's dashboard.
 
+The frontend is deployed to a real public HTTPS URL - S3 (private,
+`aws_s3_bucket_public_access_block` on) fronted by CloudFront (Origin
+Access Control, not a public bucket policy), see
+`infrastructure/environments/demo/frontend-hosting.tf`. Run
+`terraform output frontend_url` for the live link. One distribution
+serves the whole app: the bare URL shows every feature (nav tabs for
+all three); appending `?app=bookkeeping`, `?app=document-extract`, or
+`?app=review-analyzer` locks the nav down to just that one feature (see
+`applyFocusMode()` in `frontend/js/app.js`) - for sending a client a link
+scoped to only what's relevant to them, without a separate deployment or
+distribution per feature. CloudFront's free tier (1TB transfer + 10M
+requests/month) is AWS's permanent "always free" tier, not a 12-month
+trial, so this runs at effectively $0 for portfolio-demo traffic.
+
 Known gaps: no remote Terraform state backend yet (stubbed, commented out,
 in `infrastructure/environments/demo/main.tf`); ingestion into the
 Knowledge Base is currently a one-off manual step (export DynamoDB → S3 →

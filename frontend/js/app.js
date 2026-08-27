@@ -5,9 +5,29 @@
 window.App = (function() {
   let activeTab = "bookkeeping";
 
+  // Matches each nav tab's data-tab value. A URL like ?app=bookkeeping
+  // locks the app to just that view (nav hidden down to the one tab) -
+  // for sending a client a link to only the feature relevant to them.
+  // No `app` param at all shows every tab, for working across all three.
+  const FOCUS_APPS = ["bookkeeping", "document-extract", "review-analyzer"];
+
   const init = () => {
-    switchTab("bookkeeping");
+    const focusApp = new URLSearchParams(window.location.search).get("app");
+    if (focusApp && FOCUS_APPS.includes(focusApp)) {
+      applyFocusMode(focusApp);
+      switchTab(focusApp);
+    } else {
+      switchTab("bookkeeping");
+    }
     setupEventListeners();
+  };
+
+  // Hides every nav tab except the one this link is scoped to, so there's
+  // no way to navigate to the other two features from a focus-mode link.
+  const applyFocusMode = (tabName) => {
+    document.querySelectorAll(".nav-tab[data-tab]").forEach(tab => {
+      if (tab.dataset.tab !== tabName) tab.style.display = "none";
+    });
   };
 
   const switchTab = (tabName) => {

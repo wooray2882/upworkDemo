@@ -5,6 +5,34 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/public-hosting-and-focus-mode-urls`)
+- The frontend had never been deployed anywhere - only ever run on a local
+  dev server. Deployed it for real: S3 (private,
+  `aws_s3_bucket_public_access_block` on all four flags) fronted by
+  CloudFront via Origin Access Control (not a public bucket policy) - see
+  `infrastructure/environments/demo/frontend-hosting.tf`. Deliberately
+  S3+CloudFront, not S3 static-website-hosting alone: a plain-HTTP link
+  handed to a client looks unprofessional even though it works technically
+  (an http page calling this app's https API isn't a mixed-content
+  problem - only the other direction is blocked). CloudFront's free tier
+  (1TB transfer + 10M requests/month) is AWS's permanent "always free"
+  tier, not a 12-month trial, so this should run at effectively $0 for
+  portfolio-demo traffic; `PriceClass_100` keeps it that way even outside
+  the free tier. `null_resource.frontend_deploy` runs `aws s3 sync` +
+  a CloudFront invalidation whenever any file under `frontend/` changes
+  (tracked via a hash of the whole directory as the trigger).
+- Added focus-mode URLs: one CloudFront distribution serves the whole app
+  (bare URL = every feature visible, for working across all three), and
+  `?app=bookkeeping` / `?app=document-extract` / `?app=review-analyzer`
+  locks the nav down to just that one feature (`applyFocusMode()` in
+  `frontend/js/app.js`, hides the other nav tabs) - for sending a client a
+  link scoped to only what's relevant to them, without standing up a
+  separate deployment or CloudFront distribution per feature.
+- Verified live end-to-end on the real deployed URL, not just via
+  `terraform plan`: confirmed the bare URL, all three `?app=` URLs, and a
+  real API call (no CORS issues) all work from the actual CloudFront
+  domain over HTTPS.
+
 ### Fixed (branch: `fix/review-kpi-cards`)
 - Review & Sentiment's third KPI card ("Top Pain Point Identified") was
   showing `reason` hard-cut at 40 characters - a real Bedrock sentence
