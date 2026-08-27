@@ -15,9 +15,9 @@ window.BookkeepingView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Bookkeeping & Revenue Tracker</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Finance Tracker</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
-              AWS Step Functions + Bedrock Knowledge Base RAG pipeline querying DynamoDB bookkeeping records.
+              AWS Step Functions + Bedrock Knowledge Base RAG pipeline querying DynamoDB financial records.
             </p>
           </div>
           <button class="btn-secondary" onclick="BookkeepingView.simulateBatchUpload()">

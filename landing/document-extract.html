@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Extractor | AWS Multimodal AI Extraction Funnel</title>
+  <meta name="description" content="Convert hours of manual PDF, invoice, and receipt data entry into sub-second AWS Bedrock structured extraction with 99.4% schema accuracy.">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="../styles/landing-common.css">
+  <link rel="stylesheet" href="../styles/landing-doc-extract.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       STICKY FUNNEL NAVIGATION
+       ======================================================================== -->
+  <nav class="funnel-nav">
+    <a href="../index.html" class="brand-badge-group">
+      <div class="brand-icon-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </div>
+      <div class="brand-meta">
+        <span class="brand-name">Document Extractor</span>
+        <span class="freelancer-badge">
+          <span class="dot"></span>
+          AWS Serverless & AI Engineer • Upwork Portfolio
+        </span>
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="#benchmark" class="nav-link">Batch Speed</a>
+      <a href="#calculator" class="nav-link">ROI Calculator</a>
+      <a href="#sandbox" class="nav-link">Try Live Sandbox</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 9px 18px; font-size: 0.85rem;">
+        Full Platform
+      </a>
+      <a href="https://www.upwork.com" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 9px 20px; font-size: 0.85rem;">
+        Hire on Upwork
+      </a>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       HERO FUNNEL SECTION
+       ======================================================================== -->
+  <header class="funnel-section hero-funnel">
+    <div class="funnel-container">
+      <div class="hero-grid">
+        
+        <!-- Left: High-Impact Hook -->
+        <div>
+          <div class="section-tag">
+            <span>⚡</span> AWS Bedrock Multimodal OCR
+          </div>
+          <h1 class="hero-headline">
+            Turn 4 Hours of Invoicing Backlog into <span class="gradient-text">14 Seconds</span> of Pure AWS Automation.
+          </h1>
+          <p class="hero-subhead">
+            Stop losing valuable hours manually retyping vendor invoices, messy receipts, and tax forms. Our AWS Step Functions + Bedrock pipeline extracts, validates, and commits structured JSON with 99.4% schema precision.
+          </p>
+
+          <div class="hero-cta-row">
+            <a href="#sandbox" class="btn-cta btn-cta-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Try Demo Batch Live
+            </a>
+            <a href="#calculator" class="btn-cta btn-cta-secondary">
+              Calculate Time Saved
+            </a>
+          </div>
+
+          <div class="hero-stats-row">
+            <div class="stat-item">
+              <span class="stat-value">0.28s</span>
+              <span class="stat-label">Avg. Latency / Page</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">99.4%</span>
+              <span class="stat-label">Extraction Precision</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">1,070x</span>
+              <span class="stat-label">Speedup vs. Manual</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Animated Live OCR Scanner Visual -->
+        <div class="ocr-scanner-visual">
+          <div class="scanner-beam"></div>
+
+          <div class="doc-paper-preview">
+            <div class="doc-header-strip">
+              <div>
+                <div class="doc-title-text">TAX INVOICE #INV-2026-881</div>
+                <div style="font-size: 0.75rem; color: #64748b;">CloudFlare Technologies • Enterprise Tier</div>
+              </div>
+              <div class="throughput-badge">
+                <span>●</span> OCR Verified
+              </div>
+            </div>
+
+            <!-- Fake Invoice Lines with glowing OCR tags -->
+            <div style="position: relative; padding: 12px 0 24px; font-size: 0.82rem; line-height: 1.8; color: #334155;">
+              <div style="display: flex; justify-content: space-between; position: relative;">
+                <span>Vendor: CloudFlare Technologies</span>
+                <span>Date: 2026-08-15</span>
+                <div class="bounding-box" style="top: 0; left: 45px; width: 165px; height: 26px;">
+                  <span class="bounding-tag">VENDOR: 99.8%</span>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; margin-top: 14px; position: relative;">
+                <span>Cloudflare Workers Unlimited</span>
+                <span>$850.00</span>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; position: relative;">
+                <span>DDoS Advanced Shielding</span>
+                <span>$600.00</span>
+              </div>
+
+              <div style="border-top: 1px dashed #cbd5e1; margin-top: 14px; padding-top: 10px; display: flex; justify-content: space-between; font-weight: 700; position: relative;">
+                <span>Total Amount Due (USD):</span>
+                <span style="color: #0284c7; font-size: 1.05rem;">$1,450.00</span>
+                <div class="bounding-box" style="bottom: 0; right: 0; width: 90px; height: 32px;">
+                  <span class="bounding-tag">TOTAL: 99.9%</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="background: #f1f5f9; border-radius: 6px; padding: 10px; font-size: 0.72rem; color: #475569; display: flex; justify-content: space-between; align-items: center;">
+              <span>Enforced JSON Schema: <code>InvoiceModel.v2.json</code></span>
+              <span style="color: #059669; font-weight: 700;">✓ Schema Validated</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       BENCHMARK SECTION: HOW LONG DOES A BATCH TAKE?
+       ======================================================================== -->
+  <section class="funnel-section" id="benchmark" style="background: rgba(0, 0, 0, 0.25);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">⏱ Real-World Throughput</div>
+        <h2 class="section-title">How Fast Does It Process a Batch?</h2>
+        <p class="section-desc">
+          Compare human typing speeds against our parallelized AWS Step Functions distributed map state. 50 documents processed simultaneously in sub-minute turnaround.
+        </p>
+      </div>
+
+      <div class="speed-bar-container">
+        <!-- Manual Row -->
+        <div class="speed-bar-row">
+          <div class="speed-bar-meta">
+            <span style="color: #ef4444;">Manual Data Entry (50 Invoices @ 5 min/doc)</span>
+            <span style="font-family: 'JetBrains Mono'; font-weight: 700; color: #ef4444;">4 Hours 10 Minutes (250 mins)</span>
+          </div>
+          <div class="speed-bar-track">
+            <div class="speed-bar-fill manual"></div>
+          </div>
+        </div>
+
+        <!-- AWS Automated Row -->
+        <div class="speed-bar-row">
+          <div class="speed-bar-meta">
+            <span style="color: #10b981;">AWS Bedrock + Step Functions (50 Invoices in parallel)</span>
+            <span style="font-family: 'JetBrains Mono'; font-weight: 700; color: #10b981;">14.0 Seconds (0.23 mins)</span>
+          </div>
+          <div class="speed-bar-track">
+            <div class="speed-bar-fill aws"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px;">
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: var(--accent-color); margin-bottom: 4px;">1,071x</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Turnaround Acceleration</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">Batch results available in seconds instead of end-of-week backlogs.</p>
+        </div>
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: #10b981; margin-bottom: 4px;">$0.0018</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Average Cost / Invoice</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">Serverless on-demand pricing. No recurring SaaS seat licenses.</p>
+        </div>
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: #38bdf8; margin-bottom: 4px;">0.0%</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Hallucination Rate</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">Enforced JSON schemas automatically reject invalid schema payloads.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       INTERACTIVE ROI & TIME-SAVINGS CALCULATOR
+       ======================================================================== -->
+  <section class="funnel-section" id="calculator">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">💰 Interactive Savings Engine</div>
+        <h2 class="section-title">Calculate Your Monthly Time & Dollar ROI</h2>
+        <p class="section-desc">
+          Drag the sliders below to match your organization's monthly document volume and labor cost. See your exact monthly and yearly return on investment.
+        </p>
+      </div>
+
+      <div class="calculator-card">
+        <div class="calc-grid">
+          
+          <!-- Left: Sliders -->
+          <div>
+            <!-- Volume Slider -->
+            <div class="calc-slider-group">
+              <div class="calc-slider-label">
+                <span>Monthly Document Influx:</span>
+                <span class="calc-slider-value"><span id="calc-vol-display">250</span> documents / mo</span>
+              </div>
+              <input type="range" id="doc-volume-slider" class="range-slider" min="25" max="2500" step="25" value="250">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+                <span>25 docs</span>
+                <span>1,000 docs</span>
+                <span>2,500 docs</span>
+              </div>
+            </div>
+
+            <!-- Wage Slider -->
+            <div class="calc-slider-group">
+              <div class="calc-slider-label">
+                <span>Current Hourly Operator Cost:</span>
+                <span class="calc-slider-value">$<span id="wage-val-display">30</span> / hr</span>
+              </div>
+              <input type="range" id="doc-wage-slider" class="range-slider" min="15" max="75" step="5" value="30">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+                <span>$15/hr</span>
+                <span>$45/hr</span>
+                <span>$75/hr</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(6, 182, 212, 0.06); border: 1px dashed rgba(6, 182, 212, 0.3); border-radius: var(--radius-sm); padding: 14px; font-size: 0.82rem; color: #cbd5e1;">
+              <strong>Model Benchmark:</strong> 5.0 min manual entry vs. 0.28 sec AWS Bedrock extraction per single-page invoice.
+            </div>
+          </div>
+
+          <!-- Right: Dynamic Results Box -->
+          <div class="calc-results-panel">
+            <div class="metric-comparison-row">
+              <div class="comparison-box">
+                <div class="comp-title">Manual Staff Time</div>
+                <div class="comp-value" id="calc-manual-time" style="color: #ef4444;">20.8 hrs</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Wasted on typing</div>
+              </div>
+              <div class="comparison-box highlight">
+                <div class="comp-title">AWS Automated Time</div>
+                <div class="comp-value" id="calc-aws-time">1m 10s</div>
+                <div style="font-size: 0.75rem; color: var(--accent-color); margin-top: 4px;" id="calc-speed-multiplier">1,071x faster</div>
+              </div>
+            </div>
+
+            <div class="metric-comparison-row" style="margin-bottom: 20px;">
+              <div class="comparison-box">
+                <div class="comp-title">Hours Recovered / Mo</div>
+                <div class="comp-value" id="calc-hours-saved" style="color: #10b981;">20.8 hrs</div>
+              </div>
+              <div class="comparison-box">
+                <div class="comp-title">Annual Dollar Savings</div>
+                <div class="comp-value" id="calc-dollars-year" style="color: #38bdf8;">$7,488</div>
+              </div>
+            </div>
+
+            <!-- Net Monthly ROI -->
+            <div class="roi-banner">
+              <div>
+                <div class="roi-banner-text">Net Monthly Savings</div>
+                <div style="font-size: 0.75rem; color: #64748b;">After accounting for AWS serverless cost</div>
+              </div>
+              <div class="roi-banner-value" id="calc-dollars-month">$624</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       INTERACTIVE LIVE SANDBOX ("TRY IT OUT")
+       ======================================================================== -->
+  <section class="funnel-section" id="sandbox" style="background: rgba(0, 0, 0, 0.25);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">⚡ Live Demo Sandbox</div>
+        <h2 class="section-title">Test a Batch in Real-Time</h2>
+        <p class="section-desc">
+          Click the button below to simulate an AWS Step Functions batch execution. Watch the states transition, track latency with the stopwatch, and inspect the validated output.
+        </p>
+      </div>
+
+      <div class="sandbox-card">
+        
+        <!-- Controls & Stopwatch Header -->
+        <div class="sandbox-header-bar">
+          <div>
+            <span style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Batch Size: 3 Enterprise Invoices</span>
+            <div style="font-size: 0.78rem; color: #94a3b8;">Format: PDF Scan & Multimodal JPEG</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--accent-color); font-weight: 700;">
+              Elapsed: <span id="batch-stopwatch">0.00s</span>
+            </div>
+            <button id="btn-run-batch" class="btn-cta btn-cta-primary" style="padding: 10px 22px; font-size: 0.88rem;" onclick="LandingSandbox.runBatch('doc-extract')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Run Sample Batch
+            </button>
+          </div>
+        </div>
+
+        <!-- Animated Step Functions State Pipeline -->
+        <div class="pipeline-tracker">
+          <div class="pipeline-step completed" id="step-1">
+            <span>1. S3 Ingestion</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-2">
+            <span>2. Bedrock Claude 3 Vision</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-3">
+            <span>3. Schema Enforcement</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-4">
+            <span>4. DynamoDB Commit</span>
+          </div>
+        </div>
+
+        <!-- Split Output View -->
+        <div class="sandbox-split">
+          
+          <!-- Extracted Cards -->
+          <div class="sandbox-pane">
+            <div class="pane-title-bar">
+              <span class="pane-title">Extracted Entities & Confidence</span>
+              <span style="font-size: 0.72rem; color: #10b981; font-weight: 600;">3/3 Validated</span>
+            </div>
+            <div id="sandbox-output">
+              <!-- Initial pre-rendered state -->
+              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <strong style="color: #ffffff; font-size: 0.88rem;">INV-2026-881 — CloudFlare Technologies</strong>
+                  <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">99.8% Conf</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8;">
+                  <span>Total: <strong style="color: #38bdf8;">$1,450.00</strong> (Tax: $116.00)</span>
+                  <span>Due: 2026-09-15</span>
+                </div>
+              </div>
+
+              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <strong style="color: #ffffff; font-size: 0.88rem;">INV-2026-882 — Snowflake Computing Inc</strong>
+                  <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(16,185,129,0.3);">99.4% Conf</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8;">
+                  <span>Total: <strong style="color: #38bdf8;">$3,820.50</strong> (Tax: $305.64)</span>
+                  <span>Due: 2026-09-20</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Raw Execution JSON -->
+          <div class="sandbox-pane">
+            <div class="pane-title-bar">
+              <span class="pane-title">Step Functions State Payload (KMS Signed)</span>
+              <button class="btn-cta btn-cta-secondary" style="padding: 3px 10px; font-size: 0.72rem;" onclick="navigator.clipboard.writeText(document.getElementById('sandbox-json').innerText)">Copy JSON</button>
+            </div>
+            <pre class="code-output" id="sandbox-json">{
+  "executionArn": "arn:aws:states:us-east-1:123456789012:execution:DocumentExtractPipeline:exec-99a",
+  "model": "anthropic.claude-3-sonnet-20240229-v1:0",
+  "latency_ms": 342,
+  "schema_valid": true,
+  "extracted_entities": {
+    "vendor": "CloudFlare Technologies",
+    "invoice_number": "INV-2026-881",
+    "total_amount": 1450.00,
+    "currency": "USD",
+    "confidence_score": 0.998
+  }
+}</pre>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       AWS ARCHITECTURE & SECURITY BLUEPRINT
+       ======================================================================== -->
+  <section class="funnel-section" id="architecture">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">🔒 Enterprise Infrastructure</div>
+        <h2 class="section-title">Built on Pure AWS Serverless</h2>
+        <p class="section-desc">
+          No third-party black-box SaaS. Your data never leaves your AWS account. Provisioned 100% with reproducible Terraform code.
+        </p>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-icon">🪣</div>
+          <h3 class="arch-card-title">S3 Encrypted Ingestion</h3>
+          <p class="arch-card-desc">Documents land in private S3 buckets secured with AWS KMS envelope encryption and automated lifecycle expiration.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">⚙️</div>
+          <h3 class="arch-card-title">Step Functions Orchestrator</h3>
+          <p class="arch-card-desc">Handles parallel distributed retries, circuit breaking, and human-in-the-loop fallback if confidence falls below 95%.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">🧠</div>
+          <h3 class="arch-card-title">Bedrock Claude 3 Multimodal</h3>
+          <p class="arch-card-desc">State-of-the-art vision extraction. No customer data is ever retained or used to train foundational AI models.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">⚡</div>
+          <h3 class="arch-card-title">DynamoDB + Vector Search</h3>
+          <p class="arch-card-desc">Structured fields indexed with single-digit millisecond latency, paired with Bedrock Knowledge Base RAG for conversational queries.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FAQ & PROPOSAL READY BULLETS
+       ======================================================================== -->
+  <section class="funnel-section" id="faq" style="background: rgba(0, 0, 0, 0.2);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">💬 Frequently Asked Questions</div>
+        <h2 class="section-title">Everything Upwork Clients Ask Before Starting</h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">Can it handle messy scans, mobile photos, and skewed receipts?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Yes. Bedrock's Claude 3 multimodal vision is trained on natural images and handles crumpled receipts, low-resolution phone photos, and multi-page PDFs without requiring pre-cropping.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">How long does it take you to deploy this into my AWS account?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Because the Terraform modules and Step Functions state machines are already built and tested, standard deployment takes between 2 to 5 days, including custom field schema adjustments.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">Can this sync directly into QuickBooks, Xero, or PostgreSQL?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Yes. The pipeline includes an EventBridge dispatcher Lambda that can push structured payloads via webhook, API, or direct database connectors to any target ERP.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">What will my monthly AWS bill look like?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Because the architecture is 100% serverless, you pay only for what you process. A typical workload of 500 invoices/month costs under $2.00 on AWS, eliminating expensive SaaS subscriptions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       CONVERSION CLOSE: HIRE ON UPWORK
+       ======================================================================== -->
+  <section class="funnel-section">
+    <div class="funnel-container">
+      <div class="pitch-card">
+        <h2 class="pitch-headline">Ready to Automate Your Document Pipeline?</h2>
+        <p class="pitch-desc">
+          I specialize in building production-grade, secure AWS Serverless and Generative AI pipelines on Upwork. Let's discuss your custom document schema and turnaround requirements.
+        </p>
+
+        <div class="pitch-bullets">
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            100% AWS Serverless (Your Account)
+          </div>
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Reproducible Terraform Modules
+          </div>
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Sub-Second Batch Throughput
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <a href="https://www.upwork.com" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 14px 36px; font-size: 1.05rem;">
+            Hire Me on Upwork &rarr;
+          </a>
+          <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 14px 28px; font-size: 1.05rem;">
+            View Full Demo Platform
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FOOTER
+       ======================================================================== -->
+  <footer class="funnel-container funnel-footer">
+    <div>
+      © 2026 Upwork Portfolio Project • AWS Serverless & Bedrock RAG Engine
+    </div>
+    <div class="footer-nav">
+      <a href="document-extract.html" style="color: var(--accent-color);">Document Extractor</a>
+      <a href="finance-tracker.html">Finance Tracker</a>
+      <a href="review-tracker.html">Review Tracker</a>
+      <a href="../index.html">Main Dashboard</a>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../js/landing-calculator.js"></script>
+  <script src="../js/landing-sandbox.js"></script>
+  <script>
+    // Initialize calculator with dynamic sliders
+    const volSlider = document.getElementById('doc-volume-slider');
+    const wageSlider = document.getElementById('doc-wage-slider');
+    const wageDisplay = document.getElementById('wage-val-display');
+
+    wageSlider.addEventListener('input', () => {
+      wageDisplay.innerText = wageSlider.value;
+    });
+
+    LandingCalculator.init('doc-extract', 'doc-volume-slider', 'doc-wage-slider');
+  </script>
+</body>
+</html>

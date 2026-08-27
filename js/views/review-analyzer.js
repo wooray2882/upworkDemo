@@ -15,9 +15,9 @@ window.ReviewAnalyzerView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800;">Sentiment & Review Analyzer</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800;">Review Tracker</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
-              Route: <code>/analyze-reviews</code> — Batch sentiment scoring, pain-point extraction & topic clustering via AWS Bedrock.
+              Route: <code>/analyze-reviews</code> — Batch sentiment scoring, aspect analysis & churn risk detection via AWS Bedrock.
             </p>
           </div>
           <button class="btn-secondary" onclick="ReviewAnalyzerView.analyzeBatch()">

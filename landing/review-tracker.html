@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review Tracker | AWS Customer Feedback & Sentiment Radar Funnel</title>
+  <meta name="description" content="Turn thousands of fragmented customer reviews into instant product intelligence, real-time churn alerts, and aspect-based sentiment breakdowns with AWS Bedrock.">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="../styles/landing-common.css">
+  <link rel="stylesheet" href="../styles/landing-review.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       STICKY FUNNEL NAVIGATION
+       ======================================================================== -->
+  <nav class="funnel-nav">
+    <a href="../index.html" class="brand-badge-group">
+      <div class="brand-icon-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div class="brand-meta">
+        <span class="brand-name">Review Tracker</span>
+        <span class="freelancer-badge">
+          <span class="dot"></span>
+          AWS Serverless & AI Engineer • Upwork Portfolio
+        </span>
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="#benchmark" class="nav-link">Batch Speed</a>
+      <a href="#calculator" class="nav-link">ROI Calculator</a>
+      <a href="#sandbox" class="nav-link">Try Live Sandbox</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+    </div>
+
+    <div class="nav-actions">
+      <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 9px 18px; font-size: 0.85rem;">
+        Full Platform
+      </a>
+      <a href="https://www.upwork.com" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 9px 20px; font-size: 0.85rem;">
+        Hire on Upwork
+      </a>
+    </div>
+  </nav>
+
+  <!-- ========================================================================
+       HERO FUNNEL SECTION
+       ======================================================================== -->
+  <header class="funnel-section hero-funnel">
+    <div class="funnel-container">
+      <div class="hero-grid">
+        
+        <!-- Left: High-Impact Hook -->
+        <div>
+          <div class="section-tag">
+            <span>⚡</span> Multichannel Sentiment Radar
+          </div>
+          <h1 class="hero-headline">
+            Turn 1,000 Customer Reviews into Actionable Insights in <span class="gradient-text">40 Seconds</span>.
+          </h1>
+          <p class="hero-subhead">
+            Stop drowning in unread feedback across the App Store, Trustpilot, and G2. Our AWS Bedrock + Step Functions pipeline detects customer churn signals within 5 seconds, classifies sentiment by feature aspect, and generates automated executive summaries.
+          </p>
+
+          <div class="hero-cta-row">
+            <a href="#sandbox" class="btn-cta btn-cta-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Test Live Sandbox
+            </a>
+            <a href="#calculator" class="btn-cta btn-cta-secondary">
+              Calculate Hours Saved
+            </a>
+          </div>
+
+          <div class="hero-stats-row">
+            <div class="stat-item">
+              <span class="stat-value">40ms</span>
+              <span class="stat-label">Inference / Review</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">&lt; 5 sec</span>
+              <span class="stat-label">Critical Churn Alerting</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value">3,000x</span>
+              <span class="stat-label">Faster than Manual</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Dynamic Product Intelligence Visual -->
+        <div class="review-hero-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em;">Live Sentiment Health</span>
+            <span style="font-size: 0.72rem; color: #10b981; font-weight: 600;">● 74% Net Positive</span>
+          </div>
+
+          <div class="sentiment-mood-bar">
+            <div class="sentiment-seg pos" title="74% Positive"></div>
+            <div class="sentiment-seg neu" title="14% Neutral"></div>
+            <div class="sentiment-seg neg" title="12% Negative"></div>
+          </div>
+
+          <!-- Aspect Bars -->
+          <div class="aspect-grid">
+            <div class="aspect-item">
+              <div class="aspect-label-row">
+                <span style="color: #cbd5e1;">Speed & Performance</span>
+                <span style="color: #10b981;">94% Pos</span>
+              </div>
+              <div class="aspect-track">
+                <div class="aspect-fill" style="width: 94%; background: #10b981;"></div>
+              </div>
+            </div>
+
+            <div class="aspect-item">
+              <div class="aspect-label-row">
+                <span style="color: #cbd5e1;">UX & Dashboard</span>
+                <span style="color: #8b5cf6;">88% Pos</span>
+              </div>
+              <div class="aspect-track">
+                <div class="aspect-fill" style="width: 88%; background: #8b5cf6;"></div>
+              </div>
+            </div>
+
+            <div class="aspect-item">
+              <div class="aspect-label-row">
+                <span style="color: #cbd5e1;">Billing & Pricing</span>
+                <span style="color: #f43f5e;">58% Pos (Churn Warning)</span>
+              </div>
+              <div class="aspect-track">
+                <div class="aspect-fill" style="width: 58%; background: #f43f5e;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Ingest Stream -->
+          <div class="review-stream-item">
+            <div class="review-stream-header">
+              <span style="font-weight: 700; color: #ffffff;">Marcus K. (Trustpilot)</span>
+              <span class="pill-sentiment-neg">⚠️ High Churn Risk</span>
+            </div>
+            <p style="color: #cbd5e1; font-style: italic; font-size: 0.78rem;">"Charged twice for enterprise tier. Support took 3 days to respond."</p>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px;">Aspect: <strong>Billing & Support</strong> • Auto-dispatched to Slack #urgent-churn</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       BENCHMARK SECTION: HOW FAST DOES IT PROCESS A BATCH?
+       ======================================================================== -->
+  <section class="funnel-section" id="benchmark" style="background: rgba(0, 0, 0, 0.3);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">⏱ Real-World Sentiment Benchmark</div>
+        <h2 class="section-title">How Fast Does It Process 1,000 Reviews?</h2>
+        <p class="section-desc">
+          Compare human reading and spreadsheet tagging against parallel AWS Bedrock distributed map execution.
+        </p>
+      </div>
+
+      <div class="speed-bar-container">
+        <!-- Manual Row -->
+        <div class="speed-bar-row">
+          <div class="speed-bar-meta">
+            <span style="color: #ef4444;">Manual Reading & Tagging (1,000 Reviews @ 2 min/review)</span>
+            <span style="font-family: 'JetBrains Mono'; font-weight: 700; color: #ef4444;">33.3 Hours (2,000 mins)</span>
+          </div>
+          <div class="speed-bar-track">
+            <div class="speed-bar-fill manual"></div>
+          </div>
+        </div>
+
+        <!-- AWS Automated Row -->
+        <div class="speed-bar-row">
+          <div class="speed-bar-meta">
+            <span style="color: #8b5cf6;">AWS Bedrock + Step Functions (1,000 Reviews in parallel)</span>
+            <span style="font-family: 'JetBrains Mono'; font-weight: 700; color: #8b5cf6;">40.0 Seconds (0.66 mins)</span>
+          </div>
+          <div class="speed-bar-track">
+            <div class="speed-bar-fill aws" style="background: linear-gradient(90deg, #8b5cf6, #d946ef);"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px;">
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: var(--accent-color); margin-bottom: 4px;">3,000x</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Turnaround Acceleration</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">Instant product insights delivered to leadership every morning.</p>
+        </div>
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: #f43f5e; margin-bottom: 4px;">&lt; 5 sec</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Instant Churn Interception</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">Critical reviews instantly route to your CS team before cancellation.</p>
+        </div>
+        <div class="arch-card" style="text-align: center;">
+          <div style="font-size: 2.2rem; font-weight: 900; color: #34d399; margin-bottom: 4px;">$0.0003</div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: #ffffff;">Cost Per Analyzed Review</div>
+          <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 6px;">No per-seat enterprise fees from traditional feedback software.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       INTERACTIVE ROI & TIME-SAVINGS CALCULATOR
+       ======================================================================== -->
+  <section class="funnel-section" id="calculator">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">💰 Product Team ROI Calculator</div>
+        <h2 class="section-title">Calculate Hours & Dollars Saved</h2>
+        <p class="section-desc">
+          See how many hours of manual review reading and sentiment categorizing you recover each month.
+        </p>
+      </div>
+
+      <div class="calculator-card">
+        <div class="calc-grid">
+          
+          <!-- Sliders -->
+          <div>
+            <div class="calc-slider-group">
+              <div class="calc-slider-label">
+                <span>Monthly Review Influx:</span>
+                <span class="calc-slider-value"><span id="calc-vol-display">1,200</span> reviews / mo</span>
+              </div>
+              <input type="range" id="rev-volume-slider" class="range-slider" min="200" max="10000" step="100" value="1200">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+                <span>200 reviews</span>
+                <span>5,000 reviews</span>
+                <span>10,000 reviews</span>
+              </div>
+            </div>
+
+            <div class="calc-slider-group">
+              <div class="calc-slider-label">
+                <span>Product Analyst / Associate Hourly Cost:</span>
+                <span class="calc-slider-value">$<span id="wage-val-display">35</span> / hr</span>
+              </div>
+              <input type="range" id="rev-wage-slider" class="range-slider" min="20" max="80" step="5" value="35">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+                <span>$20/hr</span>
+                <span>$50/hr</span>
+                <span>$80/hr</span>
+              </div>
+            </div>
+
+            <div style="background: rgba(139, 92, 246, 0.08); border: 1px dashed rgba(139, 92, 246, 0.3); border-radius: var(--radius-sm); padding: 14px; font-size: 0.82rem; color: #cbd5e1;">
+              <strong>Model Benchmark:</strong> 2.0 min manual review analysis vs. 0.04 sec AWS Bedrock batch classification.
+            </div>
+          </div>
+
+          <!-- Dynamic Results Box -->
+          <div class="calc-results-panel">
+            <div class="metric-comparison-row">
+              <div class="comparison-box">
+                <div class="comp-title">Manual Analyst Time</div>
+                <div class="comp-value" id="calc-manual-time" style="color: #ef4444;">40.0 hrs</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Full working week lost</div>
+              </div>
+              <div class="comparison-box highlight" style="background: rgba(139, 92, 246, 0.1); border-color: var(--accent-color);">
+                <div class="comp-title">AWS Automated Time</div>
+                <div class="comp-value" id="calc-aws-time" style="color: #c084fc;">48s</div>
+                <div style="font-size: 0.75rem; color: var(--accent-color); margin-top: 4px;" id="calc-speed-multiplier">3,000x faster</div>
+              </div>
+            </div>
+
+            <div class="metric-comparison-row" style="margin-bottom: 20px;">
+              <div class="comparison-box">
+                <div class="comp-title">Monthly Hours Saved</div>
+                <div class="comp-value" id="calc-hours-saved" style="color: #10b981;">39.9 hrs</div>
+              </div>
+              <div class="comparison-box">
+                <div class="comp-title">Annual Dollar Savings</div>
+                <div class="comp-value" id="calc-dollars-year" style="color: #f43f5e;">$16,776</div>
+              </div>
+            </div>
+
+            <!-- Net Monthly ROI -->
+            <div class="roi-banner" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(16, 185, 129, 0.15)); border-color: rgba(139, 92, 246, 0.3);">
+              <div>
+                <div class="roi-banner-text">Net Monthly Savings</div>
+                <div style="font-size: 0.75rem; color: #64748b;">Direct salary and software seat savings</div>
+              </div>
+              <div class="roi-banner-value" id="calc-dollars-month" style="color: #10b981;">$1,398</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       INTERACTIVE LIVE SANDBOX ("TRY IT OUT")
+       ======================================================================== -->
+  <section class="funnel-section" id="sandbox" style="background: rgba(0, 0, 0, 0.25);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">⚡ Live Sentiment Sandbox</div>
+        <h2 class="section-title">Test Review Ingestion in Real-Time</h2>
+        <p class="section-desc">
+          Execute a sample batch of real customer reviews. Watch aspect-based sentiment scoring, churn detection, and SNS payload dispatch.
+        </p>
+      </div>
+
+      <div class="sandbox-card">
+        
+        <div class="sandbox-header-bar">
+          <div>
+            <span style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Batch Size: 3 Multi-Channel Reviews</span>
+            <div style="font-size: 0.78rem; color: #94a3b8;">Sources: App Store, Trustpilot, G2 Crowd</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--accent-color); font-weight: 700;">
+              Elapsed: <span id="batch-stopwatch">0.00s</span>
+            </div>
+            <button id="btn-run-batch" class="btn-cta btn-cta-primary" style="padding: 10px 22px; font-size: 0.88rem;" onclick="LandingSandbox.runBatch('review-tracker')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Analyze Test Batch
+            </button>
+          </div>
+        </div>
+
+        <div class="pipeline-tracker">
+          <div class="pipeline-step completed" id="step-1">
+            <span>1. Multi-Channel Webhook</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-2">
+            <span>2. Bedrock Aspect Classifier</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-3">
+            <span>3. Churn Alerting Gate</span>
+          </div>
+          <span class="pipeline-arrow">&rarr;</span>
+          <div class="pipeline-step completed" id="step-4">
+            <span>4. Knowledge Base RAG</span>
+          </div>
+        </div>
+
+        <div class="sandbox-split">
+          
+          <div class="sandbox-pane">
+            <div class="pane-title-bar">
+              <span class="pane-title">Classified Reviews & Risk Tags</span>
+              <span style="font-size: 0.72rem; color: #f43f5e; font-weight: 600;">1 Critical Churn Intercepted</span>
+            </div>
+            <div id="sandbox-output">
+              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <strong style="color: #ffffff; font-size: 0.88rem;">Elena R. (App Store)</strong>
+                  <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 12px;">5/5 • Positive</span>
+                </div>
+                <p style="font-size: 0.8rem; color: #cbd5e1; font-style: italic; margin-bottom: 6px;">"The batch processing speed is unbelievable. Saved our team hours this week."</p>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8;">
+                  <span>Aspect: <strong style="color: #a855f7;">Performance / Speed</strong></span>
+                  <span style="color: #10b981; font-weight: 600;">Churn Risk: Low</span>
+                </div>
+              </div>
+
+              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: 8px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                  <strong style="color: #ffffff; font-size: 0.88rem;">Marcus K. (Trustpilot)</strong>
+                  <span style="font-size: 0.72rem; color: #f43f5e; background: rgba(244,63,94,0.15); padding: 2px 8px; border-radius: 12px;">2/5 • Negative</span>
+                </div>
+                <p style="font-size: 0.8rem; color: #cbd5e1; font-style: italic; margin-bottom: 6px;">"Charged twice for the enterprise tier. Support took 3 days to respond."</p>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #94a3b8;">
+                  <span>Aspect: <strong style="color: #a855f7;">Billing & Invoicing</strong></span>
+                  <span style="color: #f43f5e; font-weight: 600;">Churn Risk: HIGH RISK</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sandbox-pane">
+            <div class="pane-title-bar">
+              <span class="pane-title">SNS / EventBridge Structured Event</span>
+              <button class="btn-cta btn-cta-secondary" style="padding: 3px 10px; font-size: 0.72rem;" onclick="navigator.clipboard.writeText(document.getElementById('sandbox-json').innerText)">Copy JSON</button>
+            </div>
+            <pre class="code-output" id="sandbox-json" style="color: #c084fc;">{
+  "executionArn": "arn:aws:states:us-east-1:123456789012:execution:ReviewAnalyzerPipeline:exec-12b",
+  "reviews_ingested": 3,
+  "sentiment_distribution": {
+    "positive": 2,
+    "negative": 1,
+    "neutral": 0
+  },
+  "critical_churn_alerts_sent": 1,
+  "latency_ms": 118
+}</pre>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       AWS ARCHITECTURE & SECURITY BLUEPRINT
+       ======================================================================== -->
+  <section class="funnel-section" id="architecture">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">🔒 Multi-Channel Radar Pipeline</div>
+        <h2 class="section-title">AWS Serverless Feedback Architecture</h2>
+        <p class="section-desc">
+          Automated multi-channel feedback ingestion, real-time aspect scoring, and instant customer success alerts.
+        </p>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-card-icon">📡</div>
+          <h3 class="arch-card-title">Multi-Source Webhooks</h3>
+          <p class="arch-card-desc">API Gateway ingestion endpoints receive feedback from App Store, Google Play, Trustpilot, G2, and Zendesk tickets.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">🧠</div>
+          <h3 class="arch-card-title">Bedrock Aspect Classifier</h3>
+          <p class="arch-card-desc">Extracts fine-grained sentiment across UX, Pricing, Reliability, and Support rather than simple blunt star ratings.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">🚨</div>
+          <h3 class="arch-card-title">SNS / Slack Churn Dispatch</h3>
+          <p class="arch-card-desc">Step Functions condition logic instantly fires webhooks into your team's Slack when an enterprise customer expresses churn risk.</p>
+        </div>
+
+        <div class="arch-card">
+          <div class="arch-card-icon">⚡</div>
+          <h3 class="arch-card-title">Conversational Vector RAG</h3>
+          <p class="arch-card-desc">Search across 50,000+ historical reviews via conversational queries: "What are our top 3 requested mobile features this month?"</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FAQ & PROPOSAL READY BULLETS
+       ======================================================================== -->
+  <section class="funnel-section" id="faq" style="background: rgba(0, 0, 0, 0.2);">
+    <div class="funnel-container">
+      <div class="section-header-center">
+        <div class="section-tag">💬 Frequently Asked Questions</div>
+        <h2 class="section-title">Common Questions from Product & SaaS Clients</h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">How does aspect-based sentiment differ from regular star ratings?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">A 3-star review might say "Love the fast dashboard, but pricing is confusing and support didn't reply." Our model decomposes this into 3 distinct aspect scores rather than averaging them out.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">Can we connect this to our internal Slack or Discord?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Yes. AWS SNS topics format incoming churn alerts and push them directly into any designated Slack channel with customer info and pre-drafted response actions.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">Can it summarize 500 reviews into an executive report?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">Yes. A Bedrock synthesis state aggregates the entire month's feedback into a bulleted 1-page executive summary ranking top user complaints and feature requests.</p>
+        </div>
+
+        <div class="arch-card">
+          <h4 style="color: #ffffff; font-size: 1.05rem; margin-bottom: 8px;">How do we backfill existing historical reviews?</h4>
+          <p style="font-size: 0.85rem; color: #94a3b8; line-height: 1.6;">You can drop a single CSV or JSON dump into the S3 bucket; Step Functions Distributed Map processes 10,000 historical reviews in parallel in under 3 minutes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       CONVERSION CLOSE: HIRE ON UPWORK
+       ======================================================================== -->
+  <section class="funnel-section">
+    <div class="funnel-container">
+      <div class="pitch-card">
+        <h2 class="pitch-headline">Ready to Transform Your Customer Feedback Loop?</h2>
+        <p class="pitch-desc">
+          I build custom AWS serverless sentiment and product intelligence pipelines on Upwork. Let's discuss your review sources and custom aspect taxonomy.
+        </p>
+
+        <div class="pitch-bullets">
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Instant Churn Risk Interception (&lt; 5s)
+          </div>
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Aspect-Based Granular Categorization
+          </div>
+          <div class="pitch-bullet">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Conversational Bedrock RAG Querying
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <a href="https://www.upwork.com" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 14px 36px; font-size: 1.05rem;">
+            Hire Me on Upwork &rarr;
+          </a>
+          <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 14px 28px; font-size: 1.05rem;">
+            View Full Demo Platform
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FOOTER
+       ======================================================================== -->
+  <footer class="funnel-container funnel-footer">
+    <div>
+      © 2026 Upwork Portfolio Project • AWS Serverless & Bedrock RAG Engine
+    </div>
+    <div class="footer-nav">
+      <a href="document-extract.html">Document Extractor</a>
+      <a href="finance-tracker.html">Finance Tracker</a>
+      <a href="review-tracker.html" style="color: var(--accent-color);">Review Tracker</a>
+      <a href="../index.html">Main Dashboard</a>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="../js/landing-calculator.js"></script>
+  <script src="../js/landing-sandbox.js"></script>
+  <script>
+    const volSlider = document.getElementById('rev-volume-slider');
+    const wageSlider = document.getElementById('rev-wage-slider');
+    const wageDisplay = document.getElementById('wage-val-display');
+
+    wageSlider.addEventListener('input', () => {
+      wageDisplay.innerText = wageSlider.value;
+    });
+
+    LandingCalculator.init('review-tracker', 'rev-volume-slider', 'rev-wage-slider');
+  </script>
+</body>
+</html>
