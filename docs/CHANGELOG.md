@@ -5,6 +5,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `fix/review-kpi-cards`)
+- Review & Sentiment's third KPI card ("Top Pain Point Identified") was
+  showing `reason` hard-cut at 40 characters - a real Bedrock sentence
+  chopped mid-word (e.g. "Complete support failure creating strong" with
+  "negative experience; 1-star rating." silently dropped), with a raw
+  internal row id (`c2eb9a87-3`) displayed underneath as if it were data.
+  Iterated on the replacement per direct feedback: first tried the full
+  untruncated sentence + quoted excerpt, then themed tag pills - landed on
+  "Themes Identified": a big number (count of distinct themes across
+  batches) + top-theme name in the footer, matching the big-number/footer
+  shape the other two KPI cards already use, aggregated from Bedrock's own
+  `top_themes` per batch (new `ReviewAnalyzerView.topThemes()`).
+- The review table had the same raw-id problem in its first column
+  ("REV ID"); removed it (the id remains as the row's DOM id for RAG
+  citation highlighting, just not shown as a column) and renamed "Key
+  Topic" to "Why It Stood Out" now that the full `reason` sentence is
+  shown instead of a truncated fragment.
+
 ### Added (branch: `feature/clear-data-and-empty-states`)
 - "Clear Data" button on all three views (Bookkeeping, Reviews, Document
   Extractor) - deletes every stored record for that feature, for testing
