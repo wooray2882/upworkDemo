@@ -84,9 +84,9 @@ window.BookkeepingView = {
               Automatically extracts and categorizes expenses from uploaded invoices and receipts.
             </p>
           </div>
-          <button class="btn-secondary" onclick="BookkeepingView.simulateBatchUpload()">
+          <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="BookkeepingView.openSubmitModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            Upload Invoices Batch
+            Add Transactions
           </button>
         </div>
 
@@ -242,23 +242,28 @@ window.BookkeepingView = {
     if (visibleCountEl) visibleCountEl.textContent = filtered.length;
   },
 
-  simulateBatchUpload: async () => {
-    App.showToast("Processing transaction batch...");
-    const allData = MockAPI.getBookkeepingData();
-    const transactionsText = allData
+  // Lets a real user paste their own transactions to test with, instead
+  // of only ever resubmitting the same fixed sample data.
+  openSubmitModal: () => {
+    const sample = MockAPI.getBookkeepingData();
+    const exampleText = sample
       .map(t => `${t.vendor} - $${t.amount.toFixed(2)} - ${t.date} - ${t.category}`)
       .join("\n");
-    try {
-      const result = await RealAPI.queryBookkeeping(transactionsText);
-      App.showToast(`Done! ${result.output.structured_result.transaction_count} transactions categorized.`);
-      App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
-      // Refresh from DynamoDB so the new batch shows up immediately instead
-      // of only after a full page reload.
-      const batches = await RealAPI.listBookkeepingBatches();
-      BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
-      BookkeepingView.render();
-    } catch (err) {
-      App.showToast(`Ingestion failed: ${err.message}`);
-    }
+
+    TextSubmitModal.open({
+      title: "Add Transactions",
+      description: "Paste transactions below, one per line - vendor, amount, date, and category if known.",
+      placeholder: "Acme Cloud Hosting - $120.00 - 2026-04-01 - software\nOffice Depot - $45.30 - 2026-04-02 - office supplies",
+      exampleText,
+      submitLabel: "Categorize",
+      onSubmit: async (transactionsText) => {
+        const result = await RealAPI.queryBookkeeping(transactionsText);
+        App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
+        App.showToast(`Done! ${result.output.structured_result.transaction_count} transactions categorized.`);
+        const batches = await RealAPI.listBookkeepingBatches();
+        BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
+        BookkeepingView.render();
+      }
+    });
   }
 };

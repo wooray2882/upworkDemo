@@ -50,9 +50,9 @@ window.ReviewAnalyzerView = {
               Automatically scores customer sentiment and surfaces common pain points and themes.
             </p>
           </div>
-          <button class="btn-secondary" onclick="ReviewAnalyzerView.analyzeBatch()">
+          <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="ReviewAnalyzerView.openSubmitModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            Re-Analyze Review Stream
+            Analyze New Reviews
           </button>
         </div>
 
@@ -123,21 +123,26 @@ window.ReviewAnalyzerView = {
     }
   },
 
-  analyzeBatch: async () => {
-    App.showToast("Analyzing review batch...");
-    const data = MockAPI.getReviewData();
-    const reviewsText = data.map(r => `[${r.rating} stars] ${r.author}: ${r.text}`).join("\n");
-    try {
-      const result = await RealAPI.analyzeReviews(reviewsText);
-      App.showToast("Review analysis complete!");
-      App.logApiExecution("POST /analyze-reviews", { reviews_text: reviewsText }, result);
-      // Refresh from DynamoDB so the new batch shows up immediately instead
-      // of only after a full page reload.
-      const batches = await RealAPI.listReviewBatches();
-      ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
-      ReviewAnalyzerView.render();
-    } catch (err) {
-      App.showToast(`Analysis failed: ${err.message}`);
-    }
+  // Lets a real user paste their own reviews to test with, instead of
+  // only ever resubmitting the same fixed sample data.
+  openSubmitModal: () => {
+    const sample = MockAPI.getReviewData();
+    const exampleText = sample.map(r => `[${r.rating} stars] ${r.author}: ${r.text}`).join("\n");
+
+    TextSubmitModal.open({
+      title: "Analyze New Reviews",
+      description: "Paste customer reviews below, one per line (star rating and author are optional).",
+      placeholder: "[5 stars] Jane D.: Loved the fast delivery!\n[2 stars] Mike R.: Support took 3 days to respond.",
+      exampleText,
+      submitLabel: "Analyze",
+      onSubmit: async (reviewsText) => {
+        const result = await RealAPI.analyzeReviews(reviewsText);
+        App.logApiExecution("POST /analyze-reviews", { reviews_text: reviewsText }, result);
+        App.showToast("Review analysis complete!");
+        const batches = await RealAPI.listReviewBatches();
+        ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
+        ReviewAnalyzerView.render();
+      }
+    });
   }
 };
