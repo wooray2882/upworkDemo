@@ -126,6 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 /* Document Extractor Dual-View Layout */

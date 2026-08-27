@@ -1,29 +1,74 @@
 /* RAG Conversational Chat Side Panel & API Debugger */
 
+/* Floating hover-in panel: always an overlay above the canvas (not part of
+   the .app-container flex layout), so .main-content keeps full width
+   whether the assistant is open or closed. */
 .rag-chat-panel {
   width: 380px;
-  background: rgba(11, 15, 25, 0.9);
+  max-width: 90vw;
+  background: rgba(11, 15, 25, 0.97);
   backdrop-filter: var(--backdrop-blur);
   border-left: 1px solid var(--border-glass);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 70px);
+  position: fixed;
+  right: 0;
+  top: 70px;
+  bottom: 0;
+  z-index: 40;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (max-width: 1200px) {
-  .rag-chat-panel {
-    position: fixed;
-    right: 0;
-    top: 70px;
-    bottom: 0;
-    z-index: 40;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
-  }
 }
 
 .rag-chat-panel.collapsed {
   transform: translateX(100%);
+}
+
+.chat-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-fast);
+}
+
+.chat-close-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Reopen bubble - only shown while the panel is collapsed (sibling
+   selector, so no JS needed to sync visibility with panel state). */
+.chat-toggle-bubble {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
+  color: white;
+  border: none;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+  z-index: 39;
+  transition: var(--transition-fast);
+}
+
+.chat-toggle-bubble:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.6);
+}
+
+.rag-chat-panel.collapsed ~ .chat-toggle-bubble {
+  display: flex;
 }
 
 .chat-header {

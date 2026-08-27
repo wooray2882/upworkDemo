@@ -5,6 +5,34 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/hover-chat-and-upload-modal`)
+- The Insights Assistant panel was a fixed sidebar that squeezed the main
+  canvas width, and its "collapsed" CSS state only became a real overlay
+  under 1200px viewport width - above that it just reserved empty space
+  instead of giving it back. Made the panel `position: fixed` always (a
+  true hover-in overlay, out of the `.app-container` flex flow), so
+  `.main-content` is full width whether the assistant is open or closed.
+  Added a close (×) button in the chat header and a floating reopen bubble
+  (bottom-right, shown only via a CSS sibling selector while collapsed -
+  no JS state syncing needed). `App.toggleChatPanel()` already existed but
+  had no UI wired to it before this.
+- Fixed a real layout bug visible in production: the Category Breakdown
+  donut chart's legend had no height cap and would overflow its card,
+  visually spilling into neighboring panels once there were enough
+  categories (real data had grown to 15+ once real records accumulated).
+  Capped the legend at a scrollable `max-height` and added
+  `overflow: hidden` to `.chart-container` as a backstop.
+- Document Extractor rebuilt to match the other two trackers' shape - a
+  table page, not a dual-pane upload/preview layout. Upload moved into a
+  new `DocumentUploadModal` component (files only - no paste-text option,
+  per explicit request - PDF or image, ~4MB cap) built on a new generic
+  `Modal` component (`components/modal.js`) reused for both the upload
+  dialog and the per-row "View Details" dialog. `DataTable` gained
+  `renderDocumentsTable()` alongside its existing bookkeeping/review
+  renderers. Verified end-to-end live: selected a real file, watched the
+  modal close automatically, and confirmed the details modal opened with
+  the correct extracted result and the table refreshed with the new row.
+
 ### Changed (branch: `feature/business-friendly-ui-copy`)
 - The audience for this app is a business user (HR, ops, a manager) - not
   a developer - so two things were fixed:
