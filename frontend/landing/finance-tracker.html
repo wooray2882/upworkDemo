@@ -16,7 +16,7 @@
        STICKY FUNNEL NAVIGATION
        ======================================================================== -->
   <nav class="funnel-nav">
-    <a href="../index.html" class="brand-badge-group">
+    <a href="../index.html?app=bookkeeping" class="brand-badge-group">
       <div class="brand-icon-box">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -34,15 +34,13 @@
 
     <div class="nav-links">
       <a href="#benchmark" class="nav-link">Batch Speed</a>
-      <a href="#calculator" class="nav-link">Savings Estimator</a>
-      <a href="#sandbox" class="nav-link">Try Live Sandbox</a>
       <a href="#architecture" class="nav-link">How It Works</a>
       <a href="#faq" class="nav-link">FAQ</a>
     </div>
 
     <div class="nav-actions">
-      <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 9px 18px; font-size: 0.85rem;">
-        Full Platform
+      <a href="../index.html?app=bookkeeping" class="btn-cta btn-cta-secondary" style="padding: 9px 18px; font-size: 0.85rem;">
+        Full Demo
       </a>
       <a href="https://www.upwork.com/freelancers/~0174617219aec0a206?mp_source=share" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 9px 20px; font-size: 0.85rem;">
         Hire on Upwork
@@ -70,14 +68,14 @@
           </p>
 
           <div class="hero-cta-row">
-            <a href="#sandbox" class="btn-cta btn-cta-primary">
+            <a href="../index.html?app=bookkeeping" class="btn-cta btn-cta-primary">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              Test Live Sandbox
-            </a>
-            <a href="#calculator" class="btn-cta btn-cta-secondary">
-              Calculate Bookkeeping Savings
+              Try the Full Demo
             </a>
           </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 14px;">
+            Automating this typically saves real time and money every month - happy to walk through the numbers for your volume on a call.
+          </p>
 
           <div class="hero-stats-row">
             <div class="stat-item">
@@ -219,189 +217,24 @@
     </div>
   </section>
 
+
   <!-- ========================================================================
-       INTERACTIVE TIME & COST SAVINGS ESTIMATOR
+       HOW IT RUNS
        ======================================================================== -->
-  <section class="funnel-section" id="calculator">
+  <section class="funnel-section" id="process" style="background: rgba(0, 0, 0, 0.25);">
     <div class="funnel-container">
       <div class="section-header-center">
-        <div class="section-tag">💰 Interactive Estimator</div>
-        <h2 class="section-title">Estimate Your Monthly Hours & Cost Savings</h2>
+        <div class="section-tag">⚡ How It Runs</div>
+        <h2 class="section-title">A Simple, Reliable Process</h2>
         <p class="section-desc">
-          See roughly how many hours of bookkeeping work you could eliminate by automating transaction matching and categorization.
+          Upload or import your transactions, and each one is automatically categorized, checked for duplicates or anomalies, and saved to a clean, searchable ledger - anything unusual gets flagged for a quick review.
         </p>
       </div>
 
-      <div class="calculator-card">
-        <div class="calc-grid">
-
-          <div>
-            <div class="calc-slider-group">
-              <div class="calc-slider-label">
-                <span>Monthly Transaction Volume:</span>
-                <span class="calc-slider-value"><span id="calc-vol-display">750</span> tx / mo</span>
-              </div>
-              <input type="range" id="fin-volume-slider" class="range-slider" min="100" max="5000" step="50" value="750">
-              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
-                <span>100 tx</span>
-                <span>2,500 tx</span>
-                <span>5,000 tx</span>
-              </div>
-            </div>
-
-            <div class="calc-slider-group">
-              <div class="calc-slider-label">
-                <span>Bookkeeper / Accountant Hourly Rate:</span>
-                <span class="calc-slider-value">$<span id="wage-val-display">45</span> / hr</span>
-              </div>
-              <input type="range" id="fin-wage-slider" class="range-slider" min="25" max="95" step="5" value="45">
-              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
-                <span>$25/hr</span>
-                <span>$60/hr</span>
-                <span>$95/hr</span>
-              </div>
-            </div>
-
-            <div style="background: rgba(16, 185, 129, 0.06); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 14px; font-size: 0.82rem; color: #cbd5e1;">
-              <strong>Estimate basis:</strong> ~1.5 min manual transaction entry vs. a couple seconds of automated processing.
-            </div>
-          </div>
-
-          <div class="calc-results-panel">
-            <div class="metric-comparison-row">
-              <div class="comparison-box">
-                <div class="comp-title">Manual Bookkeeping Time</div>
-                <div class="comp-value" id="calc-manual-time" style="color: #ef4444;">18.8 hrs</div>
-                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Time spent matching lines</div>
-              </div>
-              <div class="comparison-box highlight">
-                <div class="comp-title">Automated Time</div>
-                <div class="comp-value" id="calc-automated-time">13m</div>
-                <div style="font-size: 0.75rem; color: var(--accent-color); margin-top: 4px;" id="calc-speed-multiplier">90x faster (est.)</div>
-              </div>
-            </div>
-
-            <div class="metric-comparison-row" style="margin-bottom: 20px;">
-              <div class="comparison-box">
-                <div class="comp-title">Monthly Hours Recovered</div>
-                <div class="comp-value" id="calc-hours-saved" style="color: #10b981;">18.7 hrs</div>
-              </div>
-              <div class="comparison-box">
-                <div class="comp-title">Est. Annual Value</div>
-                <div class="comp-value" id="calc-dollars-year" style="color: #f59e0b;">$10,116</div>
-              </div>
-            </div>
-
-            <div class="roi-banner">
-              <div>
-                <div class="roi-banner-text">Value of Hours Recovered / Mo</div>
-                <div style="font-size: 0.75rem; color: #64748b;">Based on the hourly rate you entered above</div>
-              </div>
-              <div class="roi-banner-value" id="calc-dollars-month">$843</div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================================
-       INTERACTIVE LIVE SANDBOX ("TRY IT OUT")
-       ======================================================================== -->
-  <section class="funnel-section" id="sandbox" style="background: rgba(0, 0, 0, 0.25);">
-    <div class="funnel-container">
-      <div class="section-header-center">
-        <div class="section-tag">⚡ Live Batch Sandbox</div>
-        <h2 class="section-title">Test Reconciliation in Real-Time</h2>
-        <p class="section-desc">
-          Click the button below to see a sample batch of transactions get categorized, checked for anomalies, and saved.
-        </p>
-      </div>
-
-      <div class="sandbox-card">
-
-        <div class="sandbox-header-bar">
-          <div>
-            <span style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Batch Size: 3 Sample Transactions</span>
-            <div style="font-size: 0.78rem; color: #94a3b8;">Format: Bank / Card Statement Line Items</div>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="font-family: 'JetBrains Mono'; font-size: 1.1rem; color: var(--accent-color); font-weight: 700;">
-              Elapsed: <span id="batch-stopwatch">0.00s</span>
-            </div>
-            <button id="btn-run-batch" class="btn-cta btn-cta-primary" style="padding: 10px 22px; font-size: 0.88rem;" onclick="LandingSandbox.runBatch('finance-tracker')">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              Reconcile Test Batch
-            </button>
-          </div>
-        </div>
-
-        <div class="pipeline-tracker">
-          <div class="pipeline-step completed" id="step-1">
-            <span>1. Import</span>
-          </div>
-          <span class="pipeline-arrow">&rarr;</span>
-          <div class="pipeline-step completed" id="step-2">
-            <span>2. Categorize</span>
-          </div>
-          <span class="pipeline-arrow">&rarr;</span>
-          <div class="pipeline-step completed" id="step-3">
-            <span>3. Check for Anomalies</span>
-          </div>
-          <span class="pipeline-arrow">&rarr;</span>
-          <div class="pipeline-step completed" id="step-4">
-            <span>4. Save Results</span>
-          </div>
-        </div>
-
-        <div class="sandbox-split">
-
-          <div class="sandbox-pane">
-            <div class="pane-title-bar">
-              <span class="pane-title">Reconciled Records & Flags</span>
-              <span style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">1 Flag Detected</span>
-            </div>
-            <div id="sandbox-output">
-              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                  <strong style="color: #ffffff; font-size: 0.88rem;">TX-7091 — CloudGrid Hosting</strong>
-                  <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); padding: 2px 8px; border-radius: 12px;">Reconciled</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8;">
-                  <span>Category: <strong style="color: #f59e0b;">Software & Cloud</strong></span>
-                  <span style="font-weight: 700; color: #ffffff;">-$438.20</span>
-                </div>
-              </div>
-
-              <div style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                  <strong style="color: #ffffff; font-size: 0.88rem;">TX-7093 — Unknown Vendor (POS-449)</strong>
-                  <span style="font-size: 0.72rem; color: #ef4444; background: rgba(239,68,68,0.15); padding: 2px 8px; border-radius: 12px;">Flagged for Review</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8;">
-                  <span>Category: <strong style="color: #f59e0b;">Uncategorized Expense</strong></span>
-                  <span style="font-weight: 700; color: #ffffff;">-$750.00</span>
-                </div>
-                <div style="font-size: 0.75rem; color: #ef4444; margin-top: 6px;">⚠️ Duplicate charge warning (matched TX-6981)</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="sandbox-pane">
-            <div class="pane-title-bar">
-              <span class="pane-title">Batch Result Summary</span>
-              <button class="btn-cta btn-cta-secondary" style="padding: 3px 10px; font-size: 0.72rem;" onclick="navigator.clipboard.writeText(document.getElementById('sandbox-json').innerText)">Copy</button>
-            </div>
-            <pre class="code-output" id="sandbox-json">{
-  "status": "complete",
-  "transactions_processed": 2,
-  "flagged_for_review": 0
-}</pre>
-          </div>
-
-        </div>
+      <div style="text-align: center;">
+        <a href="../index.html?app=bookkeeping" class="btn-cta btn-cta-primary" style="padding: 14px 32px; font-size: 1.05rem;">
+          Go Try the Demo &rarr;
+        </a>
       </div>
     </div>
   </section>
@@ -511,8 +344,8 @@
           <a href="https://www.upwork.com/freelancers/~0174617219aec0a206?mp_source=share" target="_blank" rel="noopener" class="btn-cta btn-cta-primary" style="padding: 14px 36px; font-size: 1.05rem;">
             Hire Me on Upwork &rarr;
           </a>
-          <a href="../index.html" class="btn-cta btn-cta-secondary" style="padding: 14px 28px; font-size: 1.05rem;">
-            View Full Demo Platform
+          <a href="../index.html?app=bookkeeping" class="btn-cta btn-cta-secondary" style="padding: 14px 28px; font-size: 1.05rem;">
+            Full Demo
           </a>
         </div>
       </div>
@@ -530,23 +363,8 @@
       <a href="document-extract.html">Document Extractor</a>
       <a href="finance-tracker.html" style="color: var(--accent-color);">Finance Tracker</a>
       <a href="review-tracker.html">Review Tracker</a>
-      <a href="../index.html">Main Dashboard</a>
+      <a href="../index.html?app=bookkeeping">Full Demo</a>
     </div>
   </footer>
-
-  <!-- Scripts -->
-  <script src="../js/landing-calculator.js"></script>
-  <script src="../js/landing-sandbox.js"></script>
-  <script>
-    const volSlider = document.getElementById('fin-volume-slider');
-    const wageSlider = document.getElementById('fin-wage-slider');
-    const wageDisplay = document.getElementById('wage-val-display');
-
-    wageSlider.addEventListener('input', () => {
-      wageDisplay.innerText = wageSlider.value;
-    });
-
-    LandingCalculator.init('finance-tracker', 'fin-volume-slider', 'fin-wage-slider');
-  </script>
 </body>
 </html>
