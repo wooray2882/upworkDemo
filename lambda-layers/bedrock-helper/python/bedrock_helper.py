@@ -1,14 +1,19 @@
 """Shared Bedrock-call helper, packaged as a Lambda layer.
 
 Every feature's AI-call Lambda imports this instead of writing its own
-Bedrock client, retry logic, and JSON-response validation.
+Bedrock client, retry logic, and JSON-response validation. Also carries the
+shared file-ingestion helpers (S3 fetch + xlsx parsing) used when a request
+carries an uploaded file (s3_key) instead of raw text/base64 - see
+docs/architecture.md "File ingestion".
 """
+import io
 import json
 import re
 import time
 from decimal import Decimal
 
 import boto3
+import openpyxl
 
 _CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
@@ -121,12 +126,20 @@ def invoke_model_with_file(
     return _invoke(content, model_id)
 
 
+_TRAILING_INPUT_BLOCK_RE = re.compile(r"\n[A-Za-z ]+:\s*\n-{3,}\s*\n\{\{\w+\}\}\s*\n-{3,}\s*$")
+
+
 def render_file_mode_prompt(template: str) -> str:
-    """Strips the trailing "Document text: --- {{document_text}} ---" block
-    used for text-mode prompts and appends a note that the document is
-    attached directly, for use with invoke_model_with_file()."""
-    marker = template.find("Document text:")
-    instructions = template[:marker].rstrip() if marker != -1 else template.rstrip()
+    """Strips the trailing "<Label>: --- {{placeholder}} ---" input block
+    every feature prompt ends with (e.g. "Document text:", "Transaction
+    batch:", "Reviews:" - the label text varies per feature, so this
+    matches the shape, not one hardcoded label) and appends a note that
+    the document is attached directly, for use with invoke_model_with_file().
+    Originally hardcoded to "Document text:" only, which silently left an
+    unfilled {{transactions_text}} placeholder in the prompt for any other
+    feature - caught before it shipped by checking every prompts/*.txt file,
+    not assumed from the one feature (extract-document) it was written for."""
+    instructions = _TRAILING_INPUT_BLOCK_RE.sub("", template).rstrip()
     return instructions + "\n\nThe document is attached below as a file (PDF or image). Read it directly."
 
 
@@ -143,3 +156,50 @@ def to_dynamodb_safe(value):
     if isinstance(value, list):
         return [to_dynamodb_safe(v) for v in value]
     return value
+
+
+_s3 = boto3.client("s3")
+
+
+def read_s3_object(bucket: str, key: str) -> bytes:
+    """Fetches an uploaded file from the shared uploads bucket (see
+    modules/core-engine/file-uploads.tf). Used by feature ai-call Lambdas
+    when the request carries an s3_key instead of raw text/base64."""
+    response = _s3.get_object(Bucket=bucket, Key=key)
+    return response["Body"].read()
+
+
+_EXTENSION_MEDIA_TYPES = {
+    "pdf": "application/pdf",
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "webp": "image/webp",
+}
+
+
+def guess_media_type(file_name: str) -> str:
+    """Maps a file extension to the media type invoke_model_with_file()
+    expects. Uploaded files only ever reach this via the presigned-upload
+    path (modules/core-engine/file-uploads.tf), which accepts pdf/image/
+    xlsx only, so an unrecognized extension is a real error, not silently
+    guessed at."""
+    extension = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else ""
+    if extension not in _EXTENSION_MEDIA_TYPES:
+        raise ValueError(f"Unsupported file type: .{extension}")
+    return _EXTENSION_MEDIA_TYPES[extension]
+
+
+def parse_xlsx_rows(file_bytes: bytes) -> str:
+    """Reads every row of the first sheet of an uploaded .xlsx into a
+    plain-text line per row (comma-separated cell values) - the same shape
+    a user would have typed by hand, so it feeds straight into the
+    existing render_prompt() text-mode path with no prompt changes."""
+    workbook = openpyxl.load_workbook(io.BytesIO(file_bytes), read_only=True, data_only=True)
+    sheet = workbook.active
+    lines = []
+    for row in sheet.iter_rows(values_only=True):
+        cells = [str(cell) for cell in row if cell is not None]
+        if cells:
+            lines.append(", ".join(cells))
+    return "\n".join(lines)

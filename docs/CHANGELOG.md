@@ -5,6 +5,47 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/s3-presigned-file-upload`)
+- Replaced the paste-text modal on Bookkeeping Tracker and Review &
+  Sentiment with a real multi-file drag-and-drop upload, matching Document
+  Extractor. New shared capability in `core-engine`
+  (`file-uploads.tf` + `lambdas/upload-presign`): `POST /uploads/presign`
+  returns a presigned S3 PUT URL, the frontend PUTs the file directly to a
+  new `uploads` bucket (1-day lifecycle expiry, effectively $0 storage
+  cost), then POSTs `{s3_key}` to the feature's existing route.
+- File-type branching (`.xlsx` → direct parse via new `parse_xlsx_rows` in
+  the shared `bedrock_helper` layer; PDF/image → existing Bedrock
+  document/vision path) happens in each `ai-call` Lambda's Python, and
+  batch upload fans out client-side (`components/file-upload-modal.js`,
+  concurrency-capped) — **no Step Functions `Choice`/`Map` states added**,
+  the state machine shape is completely unchanged.
+- **Amazon Textract was considered and explicitly rejected** after costing
+  it out: the APIs needed for structured line-item extraction
+  (`AnalyzeExpense`/`AnalyzeDocument`) run $50–65 per 1,000 pages after the
+  account's 3-month free tier — real, uncapped, recurring cost on a
+  demo link with uncontrolled traffic — for a capability
+  (`extract-document`'s Bedrock document/vision path) this app already has
+  for free. See `docs/architecture.md` "File ingestion" for the full
+  writeup, so this doesn't get silently re-proposed later.
+- Bug fixed along the way: `render_file_mode_prompt` (shared layer) was
+  hardcoded to strip a "Document text:" marker specific to
+  `extract-document`'s prompt wording. Reusing it for bookkeeping/reviews
+  would have silently left an unfilled `{{transactions_text}}`/
+  `{{reviews_text}}` placeholder in the prompt sent to Bedrock — caught by
+  testing the function against all three `prompts/*.txt` files before
+  shipping, not assumed from the one feature it was originally written
+  for. Generalized to strip the shape (`<Label>:\n---\n{{var}}\n---`)
+  instead of one hardcoded label.
+- `components/text-submit-modal.js` removed (no longer referenced by
+  anything after this change) — every feature now uses real file upload,
+  no paste-text input anywhere in the app.
+- Verified end-to-end live, not just via `terraform plan`: hit
+  `POST /uploads/presign` directly, `PUT` a real file to the returned URL,
+  and confirmed both the `.xlsx` and PDF paths for both bookkeeping and
+  reviews via direct API calls before touching the frontend; then verified
+  the actual browser flow (drag real files into the new modal, submit a
+  2-file batch, confirm both land as separate rows in the table).
+
 ### Changed (branch: `feature/real-input-for-reviews-and-bookkeeping`)
 - Neither "Re-Analyze Review Stream" nor "Upload Invoices Batch" ever let a
   real user submit their own data - both only resubmitted the same fixed

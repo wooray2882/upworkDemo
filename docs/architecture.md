@@ -53,6 +53,34 @@ Provisioned once per environment. Shared by every feature:
   OpenSearch Serverless carries a standing per-hour OCU cost even at rest,
   which is a poor fit for a demo platform that sits idle between job
   applications. S3 Vectors has no standing compute cost.
+- **File ingestion (S3 presigned upload)** — features that accept a file
+  upload (instead of pasted/typed text) share one presigned-URL flow:
+  `POST /uploads/presign` (`lambdas/upload-presign`) returns a short-lived
+  S3 PUT URL + object key; the frontend PUTs the file straight to a
+  dedicated `uploads` S3 bucket (`modules/core-engine/file-uploads.tf`,
+  1-day lifecycle expiry so storage cost stays ~$0), then POSTs
+  `{s3_key: "..."}` to the feature's normal route instead of raw
+  text/base64. This keeps large files off API Gateway/Lambda's payload
+  limits entirely, and needs no Step Functions changes — one `POST` is
+  still one execution, one stored record, exactly as before.
+  - **File-type branching happens in the `ai-call` Lambda's Python, not in
+    Step Functions** (no `Choice`/`Map` states): a `.xlsx` is parsed
+    directly into rows via `openpyxl` (`parse_xlsx_rows` in the shared
+    `bedrock_helper` layer) — no AI call needed for extraction, since the
+    data's already structured, so it goes straight into the same
+    `render_prompt()` text-mode call the feature already makes. A
+    PDF/image goes through Claude's native document/vision support
+    (`invoke_model_with_file`), the same path `extract-document` already
+    uses — **no Amazon Textract**. Textract was considered and explicitly
+    rejected: `AnalyzeExpense`/`AnalyzeDocument` (the APIs that would
+    actually extract structured line items) cost $50–65 per 1,000 pages
+    after the account's 3-month free tier, real recurring spend on a link
+    with uncontrolled traffic, for a capability the app already has for
+    free as a side effect of the Bedrock call it makes anyway.
+  - **Batch upload fans out client-side, not in Step Functions**: the
+    frontend's `FileUploadModal` component uploads+submits each selected
+    file with a small concurrency cap, one `POST` per file — no
+    distributed-map complexity, no new backend orchestration primitive.
 
 ## Feature module (`infrastructure/modules/feature`)
 

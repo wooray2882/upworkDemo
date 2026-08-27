@@ -242,24 +242,21 @@ window.BookkeepingView = {
     if (visibleCountEl) visibleCountEl.textContent = filtered.length;
   },
 
-  // Lets a real user paste their own transactions to test with, instead
-  // of only ever resubmitting the same fixed sample data.
+  // Lets a real user upload their own receipts/expense sheets to test
+  // with, instead of only ever resubmitting the same fixed sample data.
+  // PDF/image receipts go through Claude's native document/vision support
+  // (no Textract); .xlsx expense sheets are parsed directly into rows -
+  // see lambdas/bookkeeping-query/ai-call/handler.py.
   openSubmitModal: () => {
-    const sample = MockAPI.getBookkeepingData();
-    const exampleText = sample
-      .map(t => `${t.vendor} - $${t.amount.toFixed(2)} - ${t.date} - ${t.category}`)
-      .join("\n");
-
-    TextSubmitModal.open({
+    FileUploadModal.open({
       title: "Add Transactions",
-      description: "Paste transactions below, one per line - vendor, amount, date, and category if known.",
-      placeholder: "Acme Cloud Hosting - $120.00 - 2026-04-01 - software\nOffice Depot - $45.30 - 2026-04-02 - office supplies",
-      exampleText,
-      submitLabel: "Categorize",
-      onSubmit: async (transactionsText) => {
-        const result = await RealAPI.queryBookkeeping(transactionsText);
-        App.logApiExecution("POST /bookkeeping-query", { transactions_text: transactionsText }, result);
-        App.showToast(`Done! ${result.output.structured_result.transaction_count} transactions categorized.`);
+      logLabel: "POST /bookkeeping-query",
+      description: "Upload receipts (PDF or image) or an expense sheet (.xlsx). Multiple files at once are fine.",
+      accept: ".pdf,image/*,.xlsx",
+      submitFn: (s3Key) => RealAPI.queryBookkeepingFile(s3Key),
+      onComplete: async (results) => {
+        const total = results.reduce((sum, r) => sum + (r.transaction_count || 0), 0);
+        App.showToast(`Done! ${total} transaction(s) categorized.`);
         const batches = await RealAPI.listBookkeepingBatches();
         BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
         BookkeepingView.render();

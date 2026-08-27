@@ -64,6 +64,7 @@ module "document_extractor" {
   lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
+  uploads_bucket               = module.core_engine.uploads_bucket
 }
 
 module "review_analyzer" {
@@ -82,6 +83,7 @@ module "review_analyzer" {
   lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
+  uploads_bucket               = module.core_engine.uploads_bucket
 }
 
 module "bookkeeping_tracker" {
@@ -100,4 +102,5 @@ module "bookkeeping_tracker" {
   lambda_exec_role_name        = module.core_engine.lambda_exec_role_name
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
+  uploads_bucket               = module.core_engine.uploads_bucket
 }
