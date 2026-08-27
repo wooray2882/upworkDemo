@@ -5,6 +5,50 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/portfolio-landing-pages`)
+- Three per-feature portfolio landing pages (`frontend/landing/{document-extract,finance-tracker,review-tracker}.html`)
+  for linking clients to just the feature relevant to them, separate from
+  the shared `?app=` focus-mode links on the main dashboard. Sourced from
+  a `feat/landing-pages` GitHub branch that turned out to share **zero**
+  git history with `main` (confirmed via `git merge-base`) - merging it
+  as opened would have replaced this session's entire Terraform/Lambda/
+  docs history. Did not merge or touch that branch; instead extracted
+  just the landing page HTML/CSS/JS via `git show` and rebuilt them
+  properly on top of the real `main`.
+- Rewrote all technical/AWS language out of the extracted copy (~30+
+  mentions of AWS, Bedrock, Terraform, Step Functions, DynamoDB,
+  EventBridge, KMS, IAM, VPC across the three pages) - client-facing
+  copy now describes outcomes ("processed together, not one at a time"),
+  not the underlying implementation.
+- Removed a set of **fabricated performance claims** the original draft
+  presented as fact: invented precision ("99.4% accuracy," "0.28s
+  latency," "1,070x speedup"), a fake AWS account number inside a fake
+  execution ARN, specific unverified cost/timeline claims ("under $2/month,"
+  "2 to 5 days to deploy"), and - most seriously - a false **SOC-2
+  compliance claim** ("AICPA SOC-2... standards," "SOC-2 Compliant
+  Serverless Architecture" as a pitch bullet) that was never audited.
+  The interactive time/cost estimator (`js/landing-calculator.js`) still
+  works the same way, but now uses clearly-rounded, disclosed estimates
+  and drops the fabricated accuracy percentage and the invented
+  per-item infrastructure cost subtraction entirely - framed everywhere
+  as "(est.)," not a benchmarked result.
+- Wired every "Hire on Upwork" CTA (two per page) to the user's real
+  Upwork profile URL.
+- Added a small-phone breakpoint (`@media max-width: 480px`) to
+  `landing-common.css` - the original only had 1024px/768px breakpoints
+  and missed the hero stats row, nav CTAs, and pitch bullets at phone
+  width. Also fixed a real bug caught in the browser, not assumed: the
+  FAQ section's 2-column grid was inline-styled
+  (`style="grid-template-columns: 1fr 1fr"`), which silently overrode
+  the responsive media query at any viewport width via CSS specificity -
+  moved the layout into a real `.faq-grid` class so the mobile override
+  actually takes effect, verified in a real mobile-width browser session
+  before and after the fix.
+- Verified live in the browser: all three pages load without console
+  errors, the interactive calculator and sandbox both work correctly,
+  the Upwork links resolve to the real profile URL, and the FAQ grid
+  genuinely collapses to one column on a 375px-wide viewport.
+
 ### Added (branch: `feature/public-hosting-and-focus-mode-urls`)
 - The frontend had never been deployed anywhere - only ever run on a local
   dev server. Deployed it for real: S3 (private,
