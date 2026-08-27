@@ -5,6 +5,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added (branch: `feature/clear-data-and-empty-states`)
+- "Clear Data" button on all three views (Bookkeeping, Reviews, Document
+  Extractor) - deletes every stored record for that feature, for testing
+  with fresh data. Backed by a new `DELETE /<feature-name>` route per
+  feature (`lambdas/<feature>/clear/handler.py`, same "plain Lambda proxy,
+  no Step Functions" pattern as the existing `list` route) that scans and
+  batch-deletes the whole table. Irreversible, so it goes through a new
+  shared `Modal.confirm()` helper (red "Delete Everything" action) rather
+  than firing on a single click.
+- Proper empty states everywhere data can now legitimately be zero:
+  `DataTable`'s bookkeeping and review table renderers gained the same
+  empty-state check `renderDocumentsTable` already had (all three now
+  share one `emptyState()` helper); the line/donut charts already handled
+  an empty dataset, confirmed live rather than assumed.
+- Verified live end-to-end: cleared all three features for real via the
+  UI, confirmed each `GET /<feature-name>` returns `[]` afterward (not
+  just cleared client-side), and confirmed every empty state renders
+  correctly (table placeholder text, $0.00 KPIs, "No transactions yet"
+  chart placeholder).
+
 ### Changed (branch: `feature/s3-presigned-file-upload`)
 - Replaced the paste-text modal on Bookkeeping Tracker and Review &
   Sentiment with a real multi-file drag-and-drop upload, matching Document

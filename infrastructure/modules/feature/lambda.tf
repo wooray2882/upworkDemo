@@ -101,3 +101,36 @@ resource "aws_cloudwatch_log_group" "list" {
   retention_in_days = var.log_retention_days
   tags              = var.tags
 }
+
+# Clear Lambda: DELETE /<feature-name> wipes every stored record for this
+# feature - a deliberate "reset to fresh demo data" action for testing
+# (see docs/CHANGELOG.md), not part of the normal application flow.
+data "archive_file" "clear" {
+  type        = "zip"
+  source_dir  = "${var.lambda_source_dir}/clear"
+  output_path = "${path.module}/../../../.build/${var.feature_name}-clear.zip"
+}
+
+resource "aws_lambda_function" "clear" {
+  function_name    = "${var.feature_name}-clear-${var.environment}"
+  filename         = data.archive_file.clear.output_path
+  source_code_hash = data.archive_file.clear.output_base64sha256
+  handler          = "handler.lambda_handler"
+  runtime          = "python3.12"
+  role             = var.lambda_exec_role_arn
+  timeout          = 30
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.this.name
+    }
+  }
+
+  tags = merge(var.tags, { Feature = var.feature_name })
+}
+
+resource "aws_cloudwatch_log_group" "clear" {
+  name              = "/aws/lambda/${aws_lambda_function.clear.function_name}"
+  retention_in_days = var.log_retention_days
+  tags              = var.tags
+}

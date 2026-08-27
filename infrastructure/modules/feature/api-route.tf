@@ -73,3 +73,26 @@ resource "aws_lambda_permission" "list_api_gateway" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${var.api_execution_arn}/*/*/${var.feature_name}"
 }
+
+# --- Clear route: DELETE /<feature-name> -> clear Lambda directly ---------
+
+resource "aws_apigatewayv2_integration" "clear" {
+  api_id                 = var.api_id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.clear.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_route" "clear" {
+  api_id    = var.api_id
+  route_key = "DELETE /${var.feature_name}"
+  target    = "integrations/${aws_apigatewayv2_integration.clear.id}"
+}
+
+resource "aws_lambda_permission" "clear_api_gateway" {
+  statement_id  = "AllowAPIGatewayInvokeClear"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.clear.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${var.api_execution_arn}/*/*/${var.feature_name}"
+}

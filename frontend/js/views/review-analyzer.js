@@ -50,10 +50,16 @@ window.ReviewAnalyzerView = {
               Automatically scores customer sentiment and surfaces common pain points and themes.
             </p>
           </div>
-          <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="ReviewAnalyzerView.openSubmitModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            Analyze New Reviews
-          </button>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" onclick="ReviewAnalyzerView.openClearConfirm()" title="Delete all review records - for testing with fresh data">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Clear Data
+            </button>
+            <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="ReviewAnalyzerView.openSubmitModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              Analyze New Reviews
+            </button>
+          </div>
         </div>
 
         <!-- Metrics Grid -->
@@ -141,6 +147,23 @@ window.ReviewAnalyzerView = {
         const batches = await RealAPI.listReviewBatches();
         ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
         ReviewAnalyzerView.render();
+      }
+    });
+  },
+
+  // Deletes every stored review record - a "reset to fresh demo data"
+  // action for testing, irreversible, so it goes through the shared
+  // confirm dialog rather than firing on a single click.
+  openClearConfirm: () => {
+    Modal.confirm({
+      title: "Clear All Review Data?",
+      message: "This permanently deletes every stored review batch. This can't be undone. Use this to start testing with a clean slate.",
+      confirmLabel: "Delete Everything",
+      onConfirm: async () => {
+        await RealAPI.clearReviewBatches();
+        ReviewAnalyzerView.liveData = [];
+        ReviewAnalyzerView.render();
+        App.showToast("All review data cleared.");
       }
     });
   }
