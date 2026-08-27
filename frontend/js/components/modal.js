@@ -43,5 +43,36 @@ window.Modal = (function () {
     }
   };
 
-  return { open, close, setBody };
+  // Shared "are you sure" dialog for destructive actions (e.g. clearing a
+  // feature's stored data - see views/*.js openClearConfirm()).
+  // onConfirm may return a Promise; the modal shows a "Working..." state
+  // and stays open until it resolves, then closes.
+  const confirm = ({ title, message, confirmLabel = "Confirm", onConfirm }) => {
+    open({
+      title,
+      bodyHtml: `<p id="modal-confirm-message" style="font-size: 0.88rem; color: var(--text-main); margin: 0; line-height: 1.5;">${message}</p>`,
+      footerHtml: `
+        <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
+        <button class="btn-secondary" id="modal-confirm-btn" style="background: var(--accent-danger); color: white; border-color: transparent;" onclick="Modal.runConfirm()">
+          ${confirmLabel}
+        </button>
+      `
+    });
+    _pendingConfirm = onConfirm;
+  };
+
+  let _pendingConfirm = null;
+
+  const runConfirm = async () => {
+    const btn = document.getElementById("modal-confirm-btn");
+    if (btn) { btn.disabled = true; btn.textContent = "Working..."; }
+    try {
+      await _pendingConfirm();
+      close();
+    } catch (err) {
+      setBody(`<p style="font-size: 0.85rem; color: var(--accent-danger); margin: 0;">Failed: ${err.message}</p>`);
+    }
+  };
+
+  return { open, close, setBody, confirm, runConfirm };
 })();

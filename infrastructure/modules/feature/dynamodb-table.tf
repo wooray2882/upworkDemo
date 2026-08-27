@@ -32,7 +32,7 @@ resource "aws_iam_role_policy" "dynamodb_access" {
     Version = "2012-10-17"
     Statement = [{
       Effect   = "Allow"
-      Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan"]
+      Action   = ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query", "dynamodb:Scan", "dynamodb:DeleteItem", "dynamodb:BatchWriteItem"]
       Resource = aws_dynamodb_table.this.arn
     }]
   })

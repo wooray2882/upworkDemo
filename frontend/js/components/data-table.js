@@ -3,10 +3,22 @@
  */
 
 window.DataTable = (function() {
-  
+
+  const emptyState = (message) => `
+    <div style="padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 12px; opacity: 0.5;"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+      <div>${message}</div>
+    </div>
+  `;
+
   const renderBookkeepingTable = (containerId, data) => {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    if (data.length === 0) {
+      container.innerHTML = emptyState('No transactions yet. Click "Add Transactions" to get started.');
+      return;
+    }
 
     let rowsHtml = data.map(item => `
       <tr id="row-${item.id}">
@@ -52,6 +64,11 @@ window.DataTable = (function() {
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    if (data.length === 0) {
+      container.innerHTML = emptyState('No reviews yet. Click "Analyze New Reviews" to get started.');
+      return;
+    }
+
     let rowsHtml = data.map(item => `
       <tr id="row-${item.id}">
         <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${item.id}</td>
@@ -91,7 +108,7 @@ window.DataTable = (function() {
     if (!container) return;
 
     if (data.length === 0) {
-      container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">No documents extracted yet. Click "Upload Document" to get started.</div>`;
+      container.innerHTML = emptyState('No documents extracted yet. Click "Upload Document" to get started.');
       return;
     }
 

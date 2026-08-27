@@ -84,10 +84,16 @@ window.BookkeepingView = {
               Automatically extracts and categorizes expenses from uploaded invoices and receipts.
             </p>
           </div>
-          <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="BookkeepingView.openSubmitModal()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            Add Transactions
-          </button>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" onclick="BookkeepingView.openClearConfirm()" title="Delete all bookkeeping records - for testing with fresh data">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Clear Data
+            </button>
+            <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="BookkeepingView.openSubmitModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Add Transactions
+            </button>
+          </div>
         </div>
 
         <!-- KPI Metrics Grid -->
@@ -260,6 +266,23 @@ window.BookkeepingView = {
         const batches = await RealAPI.listBookkeepingBatches();
         BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
         BookkeepingView.render();
+      }
+    });
+  },
+
+  // Deletes every stored bookkeeping record - a "reset to fresh demo
+  // data" action for testing, irreversible, so it goes through the
+  // shared confirm dialog rather than firing on a single click.
+  openClearConfirm: () => {
+    Modal.confirm({
+      title: "Clear All Bookkeeping Data?",
+      message: "This permanently deletes every stored transaction record. This can't be undone. Use this to start testing with a clean slate.",
+      confirmLabel: "Delete Everything",
+      onConfirm: async () => {
+        await RealAPI.clearBookkeepingBatches();
+        BookkeepingView.liveData = [];
+        BookkeepingView.render();
+        App.showToast("All bookkeeping data cleared.");
       }
     });
   }

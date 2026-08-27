@@ -46,6 +46,17 @@ window.RealAPI = (function () {
     return response.json();
   };
 
+  // Deletes every stored record for a feature (plain Lambda proxy
+  // integration, not Step Functions) - the "reset to fresh demo data"
+  // action, irreversible. The frontend confirms with the user before
+  // calling this - see components/modal.js usage in each view's
+  // openClearConfirm().
+  const clearRecords = async (routeName) => {
+    const response = await fetch(`${BASE_URL}/${routeName}`, { method: "DELETE" });
+    if (!response.ok) throw new Error(`DELETE /${routeName} failed: ${response.status}`);
+    return response.json();
+  };
+
   return {
     extractDocument: (documentText) => callFeature("extract-document", { document_text: documentText }),
     // documentBase64/mediaType come from a real uploaded PDF or image - Claude
@@ -81,6 +92,9 @@ window.RealAPI = (function () {
     listDocuments: () => listRecords("extract-document"),
     listReviewBatches: () => listRecords("analyze-reviews"),
     listBookkeepingBatches: () => listRecords("bookkeeping-query"),
+    clearDocuments: () => clearRecords("extract-document"),
+    clearReviewBatches: () => clearRecords("analyze-reviews"),
+    clearBookkeepingBatches: () => clearRecords("bookkeeping-query"),
     // Real Bedrock Knowledge Base retrieval (S3 Vectors-backed vector
     // search over ingested records) + a grounded answer with citations
     // pointing at the actual S3 source files. `viewContext` is currently
