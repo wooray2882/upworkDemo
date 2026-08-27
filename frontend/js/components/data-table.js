@@ -71,7 +71,6 @@ window.DataTable = (function() {
 
     let rowsHtml = data.map(item => `
       <tr id="row-${item.id}">
-        <td style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);">${item.id}</td>
         <td style="font-weight: 600;">${item.author}</td>
         <td><span style="color: #fbbf24;">${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}</span></td>
         <td style="max-width: 280px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.text}</td>
@@ -80,7 +79,7 @@ window.DataTable = (function() {
             ${item.sentiment} (${Math.round(item.score * 100)}%)
           </span>
         </td>
-        <td><span style="background: rgba(99,102,241,0.15); color: var(--accent-primary); padding: 2px 8px; border-radius: 4px; font-size: 0.78rem;">${item.keyTopic}</span></td>
+        <td style="max-width: 320px;">${item.keyTopic}</td>
       </tr>
     `).join("");
 
@@ -88,12 +87,11 @@ window.DataTable = (function() {
       <table class="custom-table">
         <thead>
           <tr>
-            <th>REV ID</th>
             <th>Author</th>
             <th>Rating</th>
             <th>Review Text</th>
             <th>Sentiment</th>
-            <th>Key Topic</th>
+            <th>Why It Stood Out</th>
           </tr>
         </thead>
         <tbody>
