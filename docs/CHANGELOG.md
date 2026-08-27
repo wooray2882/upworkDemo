@@ -5,6 +5,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/real-input-for-reviews-and-bookkeeping`)
+- Neither "Re-Analyze Review Stream" nor "Upload Invoices Batch" ever let a
+  real user submit their own data - both only resubmitted the same fixed
+  `MockAPI` sample text on every click, with no way to test the feature
+  against anything else. Added `components/text-submit-modal.js` (a
+  generic paste-your-own-data dialog on the `Modal` component, with an
+  optional "Use example text" button) and wired it into both views:
+  `ReviewAnalyzerView.openSubmitModal()` and
+  `BookkeepingView.openSubmitModal()` replace `analyzeBatch()`/
+  `simulateBatchUpload()`. Verified live: typed a real custom review and a
+  real custom transaction, submitted both, and confirmed each appeared
+  correctly analyzed at the top of its table.
+
 ### Changed (branch: `feature/hover-chat-and-upload-modal`)
 - The Insights Assistant panel was a fixed sidebar that squeezed the main
   canvas width, and its "collapsed" CSS state only became a real overlay
