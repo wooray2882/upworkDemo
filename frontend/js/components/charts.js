@@ -146,7 +146,7 @@ window.ChartRenderer = {
         <text x="50%" y="47%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="6" font-weight="700">100%</text>
         <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" fill="#9ca3af" font-size="2.5">Tracked</text>
       </svg>
-      <div class="donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; margin-left: 20px;">
+      <div class="donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; margin-left: 20px; max-height: 230px; overflow-y: auto; padding-right: 6px;">
     `;
 
     data.forEach(item => {

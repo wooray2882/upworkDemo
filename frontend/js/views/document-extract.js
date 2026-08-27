@@ -1,23 +1,15 @@
 /**
  * Document Extractor View Controller
+ * Upload happens in a modal (see components/upload-modal.js); this view is
+ * just the extracted-documents table plus a details modal per row.
  */
 
 window.DocumentExtractView = {
-  mode: "upload", // "upload" | "paste"
-  uploadedFile: null, // { name, mediaType, base64, previewUrl } when a real file is loaded
-  pasteText: "",
-  liveResult: null, // real structured_result from the most recent run in this session
   history: null, // real records from the backend, once loaded
-  selectedHistoryId: null,
 
   render: () => {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
-
-    const selectedHistory = DocumentExtractView.selectedHistoryId
-      ? (DocumentExtractView.history || []).find(h => h.id === DocumentExtractView.selectedHistoryId)
-      : null;
-    const displayedResult = selectedHistory ? selectedHistory.structured_result : DocumentExtractView.liveResult;
 
     mainEl.innerHTML = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 20px;">
@@ -31,65 +23,19 @@ window.DocumentExtractView = {
             </p>
           </div>
 
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <button class="nav-tab ${DocumentExtractView.mode === 'upload' ? 'active' : ''}" onclick="DocumentExtractView.switchMode('upload')">
-              Upload File
-            </button>
-            <button class="nav-tab ${DocumentExtractView.mode === 'paste' ? 'active' : ''}" onclick="DocumentExtractView.switchMode('paste')">
-              Paste Text
-            </button>
-          </div>
+          <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="DocumentExtractView.openUploadModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Upload Document
+          </button>
         </div>
 
-        <!-- Dual View Grid -->
-        <div class="dual-view-grid">
-
-          <!-- Left: Input -->
-          <div class="doc-viewer-panel">
-            <div class="panel-header">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
-                ${DocumentExtractView.mode === "upload" ? (DocumentExtractView.uploadedFile?.name || "No file selected") : "Paste document text"}
-              </span>
-            </div>
-            <div class="doc-preview-area" id="doc-preview">
-              ${DocumentExtractView.mode === "upload" ? DocumentExtractView.renderUploadPanel() : DocumentExtractView.renderPastePanel()}
-            </div>
-          </div>
-
-          <!-- Right: Extracted Details -->
-          <div class="doc-viewer-panel">
-            <div class="panel-header">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">
-                ${selectedHistory ? "Saved Extraction" : "Extracted Details"}
-              </span>
-              ${selectedHistory ? "" : `
-                <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="DocumentExtractView.runExtraction()">
-                  Extract Details
-                </button>
-              `}
-            </div>
-            <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto;">
-              ${displayedResult ? `
-                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 12px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; gap: 8px;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                  ${selectedHistory ? "Loaded from saved history" : "Just extracted"}
-                </div>
-                ${DocumentExtractView.renderHumanSummary(displayedResult)}
-              ` : `
-                <div style="color: var(--text-muted); font-size: 0.85rem;">Upload a file or paste text, then click "Extract Details" to see the results here.</div>
-              `}
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Recent Extractions -->
+        <!-- Extracted Documents Table -->
         <div class="glass-card">
           <div class="chart-card-header">
-            <div class="chart-title">Recent Extractions</div>
+            <div class="chart-title">Extracted Documents</div>
           </div>
-          <div style="padding: 12px 20px 20px;">
-            ${DocumentExtractView.renderHistoryList()}
+          <div id="documents-table-container">
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Loading...</div>
           </div>
         </div>
 
@@ -97,139 +43,52 @@ window.DocumentExtractView = {
     `;
 
     RAGChat.init("document");
-
-    if (!DocumentExtractView.history) {
-      RealAPI.listDocuments()
-        .then(records => {
-          DocumentExtractView.history = records;
-          DocumentExtractView.render();
-        })
-        .catch(err => App.showToast(`Could not load recent extractions: ${err.message}`));
-    }
+    DocumentExtractView.loadHistory();
   },
 
-  renderUploadPanel: () => {
-    const f = DocumentExtractView.uploadedFile;
-    return `
-      <div style="height: 100%; display: flex; flex-direction: column; gap: 12px; padding: 16px;">
-        <label class="btn-secondary" style="cursor: pointer; text-align: center; margin: 0;">
-          Choose PDF / Image
-          <input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" style="display: none;" onchange="DocumentExtractView.handleFileUpload(event)">
-        </label>
-        ${f ? `
-          <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0;">
-            ${f.mediaType === "application/pdf"
-              ? `<embed src="${f.previewUrl}" type="application/pdf" style="width: 100%; height: 100%; border-radius: var(--radius-md);">`
-              : `<img src="${f.previewUrl}" style="max-width: 100%; max-height: 100%; border-radius: var(--radius-md); box-shadow: 0 10px 25px rgba(0,0,0,0.3);">`
-            }
-          </div>
-        ` : `<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem;">No file selected yet</div>`}
-      </div>
-    `;
+  loadHistory: () => {
+    RealAPI.listDocuments()
+      .then(records => {
+        DocumentExtractView.history = records;
+        DataTable.renderDocumentsTable("documents-table-container", records.map(DocumentExtractView.toRow));
+      })
+      .catch(err => App.showToast(`Could not load extracted documents: ${err.message}`));
   },
 
-  renderPastePanel: () => `
-    <div style="height: 100%; padding: 16px;">
-      <textarea id="doc-paste-textarea" placeholder="Paste invoice, receipt, or other document text here..."
-        style="width: 100%; height: 100%; min-height: 240px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-md); color: var(--text-main); font-family: var(--font-sans, inherit); font-size: 0.85rem; padding: 12px; resize: vertical;"
-        oninput="DocumentExtractView.pasteText = this.value">${DocumentExtractView.pasteText}</textarea>
-    </div>
-  `,
+  toRow: (rec) => ({
+    id: rec.id,
+    documentType: rec.structured_result?.document_type || "Document",
+    summary: rec.structured_result?.summary || rec.raw_input_summary || "",
+    date: (rec.created_at || "").replace("T", " ").slice(0, 16)
+  }),
 
-  renderHistoryList: () => {
-    if (DocumentExtractView.history === null) {
-      return `<div style="color: var(--text-muted); font-size: 0.85rem;">Loading recent extractions...</div>`;
-    }
-    if (DocumentExtractView.history.length === 0) {
-      return `<div style="color: var(--text-muted); font-size: 0.85rem;">No documents extracted yet.</div>`;
-    }
-    return `
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${DocumentExtractView.history.map(rec => `
-          <div onclick="DocumentExtractView.selectHistory('${rec.id}')"
-               style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: var(--radius-md); background: ${DocumentExtractView.selectedHistoryId === rec.id ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.03)'}; cursor: pointer; border: 1px solid ${DocumentExtractView.selectedHistoryId === rec.id ? 'var(--accent-primary)' : 'transparent'};">
-            <div>
-              <div style="font-size: 0.85rem; font-weight: 600;">${rec.structured_result?.document_type || "Document"}</div>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">${rec.raw_input_summary || ""}</div>
-            </div>
-            <span style="font-size: 0.72rem; color: var(--text-muted);">${(rec.created_at || "").replace("T", " ").slice(0, 16)}</span>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  },
-
-  switchMode: (mode) => {
-    DocumentExtractView.mode = mode;
-    DocumentExtractView.selectedHistoryId = null;
-    DocumentExtractView.render();
-  },
-
-  selectHistory: (id) => {
-    DocumentExtractView.selectedHistoryId = DocumentExtractView.selectedHistoryId === id ? null : id;
-    DocumentExtractView.render();
-  },
-
-  handleFileUpload: (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const MAX_BYTES = 4_000_000; // stay under the backend's request size limit
-    if (file.size > MAX_BYTES) {
-      App.showToast(`File too large (${(file.size / 1e6).toFixed(1)}MB) - max ~4MB for this demo.`);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const [, base64] = reader.result.split(",");
-      DocumentExtractView.uploadedFile = {
-        name: file.name,
-        mediaType: file.type,
-        base64,
-        previewUrl: reader.result
-      };
-      DocumentExtractView.liveResult = null;
-      DocumentExtractView.selectedHistoryId = null;
-      DocumentExtractView.render();
-    };
-    reader.readAsDataURL(file);
-  },
-
-  runExtraction: async () => {
-    if (DocumentExtractView.mode === "upload" && !DocumentExtractView.uploadedFile) {
-      App.showToast("Choose a file first.");
-      return;
-    }
-    if (DocumentExtractView.mode === "paste" && !DocumentExtractView.pasteText.trim()) {
-      App.showToast("Paste some document text first.");
-      return;
-    }
-
-    App.showToast("Extracting details...");
-    try {
-      let result;
-      let requestBody;
-      if (DocumentExtractView.mode === "upload") {
-        const { base64, mediaType } = DocumentExtractView.uploadedFile;
-        result = await RealAPI.extractDocumentFile(base64, mediaType);
-        requestBody = { document_base64: `${base64.slice(0, 40)}... (truncated)`, media_type: mediaType };
-      } else {
-        result = await RealAPI.extractDocument(DocumentExtractView.pasteText);
-        requestBody = { document_text: DocumentExtractView.pasteText };
-      }
-      DocumentExtractView.liveResult = result.output.structured_result;
-      DocumentExtractView.selectedHistoryId = null;
+  openUploadModal: () => {
+    DocumentUploadModal.open((structuredResult) => {
       App.showToast("Extraction complete!");
-      App.logApiExecution("POST /extract-document", requestBody, result);
+      DocumentExtractView.loadHistory();
+      // Show the newly extracted document right away.
+      DocumentExtractView.showDetailsModal(structuredResult, "Just extracted");
+    });
+  },
 
-      // Refresh history so the new document shows up immediately.
-      const records = await RealAPI.listDocuments();
-      DocumentExtractView.history = records;
-      DocumentExtractView.render();
-    } catch (err) {
-      App.showToast(`Extraction failed: ${err.message}`);
-    }
+  viewDetails: (id) => {
+    const record = (DocumentExtractView.history || []).find(r => r.id === id);
+    if (!record) return;
+    DocumentExtractView.showDetailsModal(record.structured_result, "Loaded from saved history");
+  },
+
+  showDetailsModal: (result, statusLabel) => {
+    Modal.open({
+      title: result?.document_type || "Extracted Document",
+      bodyHtml: `
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          ${statusLabel}
+        </div>
+        ${DocumentExtractView.renderHumanSummary(result)}
+      `,
+      footerHtml: `<button class="btn-secondary" onclick="Modal.close()">Close</button>`
+    });
   },
 
   // --- Human-readable rendering -------------------------------------------
@@ -260,11 +119,8 @@ window.DocumentExtractView = {
 
     return `
       <div class="extraction-summary">
-        ${document_type || summary ? `
-          <div class="extraction-summary-text">
-            ${document_type ? `<strong>${document_type}</strong><br>` : ""}
-            ${summary || ""}
-          </div>
+        ${summary ? `
+          <div class="extraction-summary-text">${summary}</div>
         ` : ""}
         ${DocumentExtractView.renderFieldRows(mainFields)}
       </div>

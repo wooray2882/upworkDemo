@@ -86,8 +86,48 @@ window.DataTable = (function() {
     `;
   };
 
+  const renderDocumentsTable = (containerId, data) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (data.length === 0) {
+      container.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">No documents extracted yet. Click "Upload Document" to get started.</div>`;
+      return;
+    }
+
+    let rowsHtml = data.map(item => `
+      <tr id="row-${item.id}">
+        <td style="font-weight: 600;">${item.documentType}</td>
+        <td style="max-width: 320px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.summary}</td>
+        <td style="color: var(--text-muted);">${item.date}</td>
+        <td>
+          <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.72rem;" onclick="DocumentExtractView.viewDetails('${item.id}')">
+            View Details
+          </button>
+        </td>
+      </tr>
+    `).join("");
+
+    container.innerHTML = `
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Document Type</th>
+            <th>Summary</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    `;
+  };
+
   return {
     renderBookkeepingTable,
-    renderReviewTable
+    renderReviewTable,
+    renderDocumentsTable
   };
 })();
