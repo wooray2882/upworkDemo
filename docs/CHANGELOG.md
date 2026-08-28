@@ -5,6 +5,41 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed (branch: `fix/document-upload-413-and-shared-batch-modal`)
+- Document Extractor was throwing a real 413 on real uploads - caught
+  live via a user-reported screenshot uploading an actual invoice photo.
+  Root cause: its upload path sent the file inline as
+  `document_base64` in the request body, which becomes the Step
+  Functions execution `Input` - and Step Functions caps `Input` at a
+  hard, non-negotiable **256 KB** (an AWS service quota, not the 10 MB
+  API Gateway limit or the 6 MB Lambda invoke limit the code's own
+  comments referenced). The 4MB client-side size check was validated
+  against the wrong constraint from the start; no client-side limit
+  would have caught this correctly since the real ceiling is ~20x
+  smaller. Fixed by adding the same `s3_key` presigned-upload branch
+  `bookkeeping-query`/`analyze-reviews` already had to
+  `extract-document`'s `ai-call` Lambda - the file never touches the
+  request body at all now. Verified live: a real 2.76 MB JPEG (11x over
+  the old ceiling) now processes successfully end-to-end, both via
+  direct API calls and through the actual browser upload flow.
+- Document Extractor now uses the same shared `FileUploadModal`
+  component Finance Tracker and Sentiment Analyzer already use (batch,
+  drag-and-drop), replacing the separate single-file `DocumentUploadModal`
+  component - one reusable upload component across all three apps instead
+  of a one-off per feature, per explicit direction. Deleted
+  `components/upload-modal.js` (no longer referenced anywhere).
+- Added CSV support across all three features (Document Extractor,
+  Finance Tracker, Sentiment Analyzer) - a `.csv` file (e.g. exported
+  from Google Sheets) is decoded directly as text and fed through the
+  same code path `.xlsx` already used (new `parse_csv_rows()` in the
+  shared `bedrock_helper` layer). "Supports Google Sheets" in practice
+  means CSV/XLSX export, not a live Sheets API connection - noted
+  explicitly rather than implied, since that's a materially different
+  (and unbuilt) integration.
+- Verified live end-to-end: real JPEG upload, real CSV upload (via
+  direct API calls and the actual upload modal), and confirmed the
+  live browser flow closes the modal and refreshes the table correctly.
+
 ### Changed (branch: `feature/rename-finance-and-sentiment`)
 - Renamed "Bookkeeping Tracker" → "Finance Tracker" and "Review &
   Sentiment" → "Sentiment Analyzer" everywhere user-facing, so the app,

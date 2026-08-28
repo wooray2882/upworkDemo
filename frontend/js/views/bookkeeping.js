@@ -257,8 +257,8 @@ window.BookkeepingView = {
     FileUploadModal.open({
       title: "Add Transactions",
       logLabel: "POST /bookkeeping-query",
-      description: "Upload receipts (PDF or image) or an expense sheet (.xlsx). Multiple files at once are fine.",
-      accept: ".pdf,image/*,.xlsx",
+      description: "Upload receipts (PDF or image) or an expense sheet (.xlsx or .csv). Multiple files at once are fine.",
+      accept: ".pdf,image/*,.xlsx,.csv",
       submitFn: (s3Key) => RealAPI.queryBookkeepingFile(s3Key),
       onComplete: async (results) => {
         const total = results.reduce((sum, r) => sum + (r.transaction_count || 0), 0);
