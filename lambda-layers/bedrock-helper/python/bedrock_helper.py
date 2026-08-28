@@ -203,3 +203,10 @@ def parse_xlsx_rows(file_bytes: bytes) -> str:
         if cells:
             lines.append(", ".join(cells))
     return "\n".join(lines)
+
+
+def parse_csv_rows(file_bytes: bytes) -> str:
+    """A .csv (e.g. exported from Google Sheets) is already plain text -
+    just decode it. Feeds into the same render_prompt() text-mode path as
+    parse_xlsx_rows(), no separate CSV-specific parsing needed."""
+    return file_bytes.decode("utf-8", errors="replace").strip()

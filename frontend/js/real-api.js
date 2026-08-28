@@ -61,8 +61,12 @@ window.RealAPI = (function () {
     extractDocument: (documentText) => callFeature("extract-document", { document_text: documentText }),
     // documentBase64/mediaType come from a real uploaded PDF or image - Claude
     // reads it directly via Bedrock's native document/vision support (this IS
-    // the OCR step, no separate OCR/Textract service involved).
+    // the OCR step, no separate OCR/Textract service involved). Only safe for
+    // small files - this route runs through Step Functions' StartSyncExecution,
+    // which caps Input at a hard 256 KB; extractDocumentFile below (the
+    // presigned-S3 path) is what the UI actually uses for real uploads.
     extractDocumentFile: (documentBase64, mediaType) => callFeature("extract-document", { document_base64: documentBase64, media_type: mediaType }),
+    extractDocumentFromS3: (s3Key) => callFeature("extract-document", { s3_key: s3Key }),
     analyzeReviews: (reviewsText) => callFeature("analyze-reviews", { reviews_text: reviewsText }),
     queryBookkeeping: (transactionsText) => callFeature("bookkeeping-query", { transactions_text: transactionsText }),
     // Shared presigned-upload flow (see components/file-upload-modal.js and

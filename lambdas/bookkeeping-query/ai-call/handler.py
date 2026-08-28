@@ -10,10 +10,10 @@ tracker").
 Supports two input modes:
   - transactions_text: plain text (existing behavior)
   - s3_key: an uploaded file (see modules/core-engine/file-uploads.tf) - a
-    .xlsx expense sheet is parsed directly into rows (no AI call needed for
-    extraction, since the data's already structured); a PDF/image receipt
-    is read directly by Claude's document/vision support, same as
-    extract-document already does - no Textract involved.
+    .xlsx or .csv expense sheet is parsed directly into rows (no AI call
+    needed for extraction, since the data's already structured); a
+    PDF/image receipt is read directly by Claude's document/vision
+    support, same as extract-document already does - no Textract involved.
 """
 import base64
 import os
@@ -22,6 +22,7 @@ from bedrock_helper import (
     guess_media_type,
     invoke_model,
     invoke_model_with_file,
+    parse_csv_rows,
     parse_xlsx_rows,
     read_s3_object,
     render_file_mode_prompt,
@@ -30,6 +31,7 @@ from bedrock_helper import (
 
 PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
+SPREADSHEET_PARSERS = {".xlsx": parse_xlsx_rows, ".csv": parse_csv_rows}
 
 
 def lambda_handler(event, context):
@@ -39,8 +41,9 @@ def lambda_handler(event, context):
 
     if s3_key:
         file_bytes = read_s3_object(UPLOADS_BUCKET, s3_key)
-        if s3_key.lower().endswith(".xlsx"):
-            transactions_text = parse_xlsx_rows(file_bytes)
+        extension = os.path.splitext(s3_key.lower())[1]
+        if extension in SPREADSHEET_PARSERS:
+            transactions_text = SPREADSHEET_PARSERS[extension](file_bytes)
             prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
             result = invoke_model(prompt)
             raw_input_summary = f"uploaded expense sheet ({s3_key})"

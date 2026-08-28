@@ -1,7 +1,8 @@
 /**
  * Document Extractor View Controller
- * Upload happens in a modal (see components/upload-modal.js); this view is
- * just the extracted-documents table plus a details modal per row.
+ * Upload happens in the shared FileUploadModal (see
+ * components/file-upload-modal.js - reused across all three apps); this
+ * view is just the extracted-documents table plus a details modal per row.
  */
 
 window.DocumentExtractView = {
@@ -19,7 +20,7 @@ window.DocumentExtractView = {
           <div>
             <h1 style="font-size: 1.5rem; font-weight: 800;">Document Extractor</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
-              Upload an invoice, receipt, or form and get the key details pulled out automatically.
+              Upload invoices, receipts, or forms - one at a time or as a batch - and get the key details pulled out automatically.
             </p>
           </div>
 
@@ -85,12 +86,23 @@ window.DocumentExtractView = {
     date: (rec.created_at || "").replace("T", " ").slice(0, 16)
   }),
 
+  // Same shared FileUploadModal component used by Finance Tracker and
+  // Sentiment Analyzer - one reusable batch-upload component across all
+  // three apps, not a separate one-off per feature. Handles PDFs, images,
+  // spreadsheets (.xlsx), and CSVs (a plain-text export of a Google
+  // Sheet, which is what "supports Google Sheets" means in practice -
+  // there's no live Sheets-API connection here).
   openUploadModal: () => {
-    DocumentUploadModal.open((structuredResult) => {
-      App.showToast("Extraction complete!");
-      DocumentExtractView.loadHistory();
-      // Show the newly extracted document right away.
-      DocumentExtractView.showDetailsModal(structuredResult, "Just extracted");
+    FileUploadModal.open({
+      title: "Upload Documents",
+      logLabel: "POST /extract-document",
+      description: "Upload invoices, receipts, or forms (PDF, image, .xlsx, or .csv). Multiple files at once are fine.",
+      accept: ".pdf,image/*,.xlsx,.csv",
+      submitFn: (s3Key) => RealAPI.extractDocumentFromS3(s3Key),
+      onComplete: (results) => {
+        App.showToast(`Done! ${results.length} document(s) extracted.`);
+        DocumentExtractView.loadHistory();
+      }
     });
   },
 

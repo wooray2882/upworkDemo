@@ -167,8 +167,8 @@ window.ReviewAnalyzerView = {
     FileUploadModal.open({
       title: "Analyze New Reviews",
       logLabel: "POST /analyze-reviews",
-      description: "Upload a review export (PDF, image, or .xlsx). Multiple files at once are fine.",
-      accept: ".pdf,image/*,.xlsx",
+      description: "Upload a review export (PDF, image, .xlsx, or .csv). Multiple files at once are fine.",
+      accept: ".pdf,image/*,.xlsx,.csv",
       submitFn: (s3Key) => RealAPI.analyzeReviewsFile(s3Key),
       onComplete: async (results) => {
         const total = results.reduce((sum, r) => sum + (r.review_count || 0), 0);
