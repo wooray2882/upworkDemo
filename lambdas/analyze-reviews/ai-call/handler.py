@@ -29,6 +29,15 @@ PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
 SPREADSHEET_PARSERS = {".xlsx": parse_xlsx_rows, ".csv": parse_csv_rows}
 
+MAX_ROWS = 30
+
+
+def _truncate(text: str):
+    lines = [l for l in text.split("\n") if l.strip()]
+    if len(lines) <= MAX_ROWS:
+        return text, False, len(lines)
+    return "\n".join(lines[:MAX_ROWS]), True, len(lines)
+
 
 def lambda_handler(event, context):
     # event is the Step Functions execution input directly, not an
@@ -39,10 +48,12 @@ def lambda_handler(event, context):
         file_bytes = read_s3_object(UPLOADS_BUCKET, s3_key)
         extension = os.path.splitext(s3_key.lower())[1]
         if extension in SPREADSHEET_PARSERS:
-            reviews_text = SPREADSHEET_PARSERS[extension](file_bytes)
+            raw_text = SPREADSHEET_PARSERS[extension](file_bytes)
+            reviews_text, truncated, original_count = _truncate(raw_text)
             prompt = render_prompt(PROMPT_TEXT, reviews_text=reviews_text)
             result = invoke_model(prompt)
-            raw_input_summary = f"uploaded review export ({s3_key})"
+            trunc_note = f" — truncated to {MAX_ROWS} of {original_count} rows" if truncated else ""
+            raw_input_summary = f"uploaded review export{trunc_note} ({s3_key})"
         else:
             media_type = guess_media_type(s3_key)
             prompt = render_file_mode_prompt(PROMPT_TEXT)

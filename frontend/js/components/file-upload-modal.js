@@ -12,7 +12,7 @@
  */
 window.FileUploadModal = (function () {
   const CONCURRENCY = 3;
-  const MAX_CSV_ROWS = 500;
+  const MAX_CSV_ROWS = 30; // matches server-side truncation limit — keeps demo fast
 
   let config = null;
   let files = []; // { file, status: "pending"|"uploading"|"done"|"error", error, rowWarning }
@@ -111,7 +111,7 @@ window.FileUploadModal = (function () {
       if (file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".xlsx")) {
         countCsvRows(file).then(count => {
           if (count > MAX_CSV_ROWS) {
-            entry.rowWarning = `${count} rows detected — uploads over ${MAX_CSV_ROWS} rows may take a minute`;
+            entry.rowWarning = `${count} rows detected — file will be truncated to the first ${MAX_CSV_ROWS} rows`;
             refreshList();
           }
         });

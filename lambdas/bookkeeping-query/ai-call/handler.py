@@ -33,6 +33,20 @@ PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
 SPREADSHEET_PARSERS = {".xlsx": parse_xlsx_rows, ".csv": parse_csv_rows}
 
+# Hard cap for demo speed: keeps the Bedrock prompt small so each upload
+# processes in a few seconds. Raise this for a production build once the
+# Step Functions / Lambda timeouts have been tuned for larger payloads.
+MAX_ROWS = 30
+
+
+def _truncate(text: str):
+    """Keeps at most MAX_ROWS non-empty lines (header counts as one).
+    Returns (truncated_text, was_truncated, original_line_count)."""
+    lines = [l for l in text.split("\n") if l.strip()]
+    if len(lines) <= MAX_ROWS:
+        return text, False, len(lines)
+    return "\n".join(lines[:MAX_ROWS]), True, len(lines)
+
 
 def lambda_handler(event, context):
     # event is the Step Functions execution input directly, not an
@@ -43,10 +57,12 @@ def lambda_handler(event, context):
         file_bytes = read_s3_object(UPLOADS_BUCKET, s3_key)
         extension = os.path.splitext(s3_key.lower())[1]
         if extension in SPREADSHEET_PARSERS:
-            transactions_text = SPREADSHEET_PARSERS[extension](file_bytes)
+            raw_text = SPREADSHEET_PARSERS[extension](file_bytes)
+            transactions_text, truncated, original_count = _truncate(raw_text)
             prompt = render_prompt(PROMPT_TEXT, transactions_text=transactions_text)
             result = invoke_model(prompt)
-            raw_input_summary = f"uploaded expense sheet ({s3_key})"
+            trunc_note = f" — truncated to {MAX_ROWS} of {original_count} rows" if truncated else ""
+            raw_input_summary = f"uploaded expense sheet{trunc_note} ({s3_key})"
         else:
             media_type = guess_media_type(s3_key)
             prompt = render_file_mode_prompt(PROMPT_TEXT)
