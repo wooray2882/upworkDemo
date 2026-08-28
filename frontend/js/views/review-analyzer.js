@@ -72,7 +72,7 @@ window.ReviewAnalyzerView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800;">Review &amp; Sentiment</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800;">Sentiment Analyzer</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted);">
               Automatically scores customer sentiment and surfaces common pain points and themes.
             </p>
@@ -186,7 +186,7 @@ window.ReviewAnalyzerView = {
   // confirm dialog rather than firing on a single click.
   openClearConfirm: () => {
     Modal.confirm({
-      title: "Clear All Review Data?",
+      title: "Clear All Sentiment Data?",
       message: "This permanently deletes every stored review batch. This can't be undone. Use this to start testing with a clean slate.",
       confirmLabel: "Delete Everything",
       onConfirm: async () => {

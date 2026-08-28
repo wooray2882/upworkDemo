@@ -5,6 +5,27 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed (branch: `feature/rename-finance-and-sentiment`)
+- Renamed "Bookkeeping Tracker" → "Finance Tracker" and "Review &
+  Sentiment" → "Sentiment Analyzer" everywhere user-facing, so the app,
+  the landing pages, and the Upwork portfolio listings all use the same
+  names - nav tab labels, page `<h1>`s, the "Clear Data" confirm dialog
+  titles (`js/views/bookkeeping.js`, `js/views/review-analyzer.js`), and
+  `index.html`'s nav buttons. The internal `?app=bookkeeping` /
+  `?app=review-analyzer` route slugs were deliberately left unchanged -
+  they're plumbing, not user-facing text, so renaming them would only
+  add risk for no visible benefit.
+- Renamed the landing page file itself: `landing/review-tracker.html` →
+  `landing/sentiment-analyzer.html` (via `git mv`, not delete+recreate),
+  so the URL matches the new brand name too, not just the page content.
+  Updated every cross-link to it from the other two landing pages'
+  footers. Confirmed old URL now 404s and the new one serves correctly.
+- Sentiment Analyzer's rename was requested specifically because "Review
+  & Sentiment" undersold what it does - the underlying prompt has no
+  concept of "reviews" specifically, it classifies sentiment and themes
+  in any batch of opinion text (product reviews, support tickets,
+  surveys, etc.), so the name shouldn't imply otherwise.
+
 ### Changed (branch: `feature/landing-page-simplification`)
 - Every link on all three landing pages that pointed at the full dashboard
   (`../index.html`, unscoped - logo click, "Full Platform" nav button,

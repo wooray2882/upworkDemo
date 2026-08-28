@@ -79,7 +79,7 @@ window.BookkeepingView = {
         <!-- Header Info -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div>
-            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Bookkeeping Tracker</h1>
+            <h1 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;">Finance Tracker</h1>
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">
               Automatically extracts and categorizes expenses from uploaded invoices and receipts.
             </p>
@@ -275,7 +275,7 @@ window.BookkeepingView = {
   // shared confirm dialog rather than firing on a single click.
   openClearConfirm: () => {
     Modal.confirm({
-      title: "Clear All Bookkeeping Data?",
+      title: "Clear All Finance Data?",
       message: "This permanently deletes every stored transaction record. This can't be undone. Use this to start testing with a clean slate.",
       confirmLabel: "Delete Everything",
       onConfirm: async () => {
