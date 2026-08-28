@@ -12,9 +12,10 @@
  */
 window.FileUploadModal = (function () {
   const CONCURRENCY = 3;
+  const MAX_CSV_ROWS = 500;
 
   let config = null;
-  let files = []; // { file, status: "pending"|"uploading"|"done"|"error", error }
+  let files = []; // { file, status: "pending"|"uploading"|"done"|"error", error, rowWarning }
 
   const open = (opts) => {
     config = opts;
@@ -35,14 +36,18 @@ window.FileUploadModal = (function () {
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${config.description}</p>
 
-      <label id="file-drop-zone" style="border: 2px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 28px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 0.85rem;"
-        ondragover="event.preventDefault(); event.currentTarget.style.borderColor='var(--accent-primary)';"
-        ondragleave="event.currentTarget.style.borderColor='rgba(255,255,255,0.15)';"
+      <div id="file-drop-zone" style="border: 2px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 28px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 0.85rem;"
+        onclick="FileUploadModal.openFilePicker()"
+        ondragover="event.preventDefault(); document.getElementById('file-drop-zone').style.borderColor='var(--accent-primary)';"
+        ondragleave="document.getElementById('file-drop-zone').style.borderColor='rgba(255,255,255,0.15)';"
         ondrop="FileUploadModal.handleDrop(event)">
-        Drag &amp; drop files here, or click to choose<br>
-        <span style="font-size: 0.75rem;">Multiple files supported</span>
-        <input type="file" multiple accept="${config.accept}" style="display: none;" onchange="FileUploadModal.handleFilesSelected(event.target.files)">
-      </label>
+        Drag &amp; drop files here, or <strong style="color: var(--accent-primary);">click to choose</strong><br>
+        <span style="font-size: 0.75rem; margin-top: 4px; display: inline-block;">Multiple files supported</span>
+      </div>
+
+      <input id="file-upload-input" type="file" multiple accept="${config.accept}"
+        style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none;"
+        onchange="FileUploadModal.handleFilesSelected(event.target.files)">
 
       <div id="file-upload-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto;">
         ${renderFileList()}
@@ -58,12 +63,15 @@ window.FileUploadModal = (function () {
       return `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 8px 0;">No files selected yet</div>`;
     }
     return files.map((f, i) => `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm, 6px); font-size: 0.8rem;">
-        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;">${f.file.name}</span>
-        <span style="display: flex; align-items: center; gap: 8px;">
-          <span style="color: ${STATUS_COLOR[f.status]};">${STATUS_LABEL[f.status]}${f.status === "error" ? `: ${f.error}` : ""}</span>
-          ${f.status === "pending" ? `<button class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem;" onclick="FileUploadModal.removeFile(${i})">Remove</button>` : ""}
-        </span>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: var(--radius-sm, 6px); font-size: 0.8rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;">${f.file.name}</span>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="color: ${STATUS_COLOR[f.status]};">${STATUS_LABEL[f.status]}${f.status === "error" ? `: ${f.error}` : ""}</span>
+            ${f.status === "pending" ? `<button class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem;" onclick="FileUploadModal.removeFile(${i})">Remove</button>` : ""}
+          </span>
+        </div>
+        ${f.rowWarning ? `<div style="font-size: 0.72rem; color: var(--accent-warning);">⚠ ${f.rowWarning}</div>` : ""}
       </div>
     `).join("");
   };
@@ -78,9 +86,36 @@ window.FileUploadModal = (function () {
     if (btn) btn.disabled = !enabled;
   };
 
+  // Called directly from onclick on the drop zone — must stay synchronous
+  // with the user gesture so the browser allows opening the file picker.
+  const openFilePicker = () => {
+    const input = document.getElementById("file-upload-input");
+    if (input) input.click();
+  };
+
+  const countCsvRows = (file) => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = (e.target.result || "").split("\n").filter(l => l.trim()).length;
+      resolve(lines);
+    };
+    reader.onerror = () => resolve(0);
+    reader.readAsText(file.slice(0, 2_000_000));
+  });
+
   const addFiles = (fileList) => {
     for (const file of fileList) {
-      files.push({ file, status: "pending", error: null });
+      const entry = { file, status: "pending", error: null, rowWarning: null };
+      files.push(entry);
+
+      if (file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".xlsx")) {
+        countCsvRows(file).then(count => {
+          if (count > MAX_CSV_ROWS) {
+            entry.rowWarning = `${count} rows detected — uploads over ${MAX_CSV_ROWS} rows may take a minute`;
+            refreshList();
+          }
+        });
+      }
     }
     refreshList();
     setSubmitEnabled(files.length > 0);
@@ -90,7 +125,8 @@ window.FileUploadModal = (function () {
 
   const handleDrop = (event) => {
     event.preventDefault();
-    event.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+    const zone = document.getElementById("file-drop-zone");
+    if (zone) zone.style.borderColor = "rgba(255,255,255,0.15)";
     addFiles(event.dataTransfer.files);
   };
 
@@ -108,7 +144,7 @@ window.FileUploadModal = (function () {
       await RealAPI.uploadToS3(upload_url, entry.file);
       const result = await config.submitFn(s3_key);
       entry.status = "done";
-      entry.structuredResult = result.output.structured_result;
+      entry.structuredResult = result?.output?.structured_result ?? null;
       App.logApiExecution(config.logLabel || config.title, { s3_key }, result);
     } catch (err) {
       entry.status = "error";
@@ -149,5 +185,5 @@ window.FileUploadModal = (function () {
     }
   };
 
-  return { open, handleFilesSelected, handleDrop, removeFile, submit };
+  return { open, handleFilesSelected, handleDrop, removeFile, submit, openFilePicker };
 })();

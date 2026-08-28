@@ -76,4 +76,5 @@ def lambda_handler(event, context):
     return {
         "raw_input_summary": raw_input_summary,
         "structured_result": result,
+        "s3_key": s3_key,  # None for text/base64 paths; stored so the frontend can fetch a preview
     }

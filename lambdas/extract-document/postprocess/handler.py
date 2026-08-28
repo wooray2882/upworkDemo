@@ -25,5 +25,8 @@ def lambda_handler(event, context):
         "structured_result": to_dynamodb_safe(event.get("structured_result", {})),
         "feature_type": FEATURE_NAME,
     }
+    s3_key = event.get("s3_key")
+    if s3_key:
+        item["s3_key"] = s3_key
     table.put_item(Item=item)
     return item

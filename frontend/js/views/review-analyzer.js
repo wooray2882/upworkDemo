@@ -148,6 +148,12 @@ window.ReviewAnalyzerView = {
     // Fetch real records from DynamoDB (via GET /analyze-reviews) once,
     // then re-render with live data instead of MockAPI's static sample rows.
     if (!ReviewAnalyzerView.liveData) {
+      const tableContainer = document.getElementById("review-table-container");
+      if (tableContainer) tableContainer.innerHTML = `
+        <div style="padding: 32px; text-align: center; color: var(--text-muted);">
+          <div class="loading-spinner"></div>
+          <div style="font-size: 0.82rem;">Loading reviews...</div>
+        </div>`;
       RealAPI.listReviewBatches()
         .then(batches => {
           ReviewAnalyzerView.rawBatches = batches;

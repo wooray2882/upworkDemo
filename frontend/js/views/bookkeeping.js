@@ -217,6 +217,12 @@ window.BookkeepingView = {
     // then re-render with live data. No MockAPI fallback - an empty/loading
     // state is shown until this resolves rather than fabricated numbers.
     if (!BookkeepingView.liveData) {
+      const tableContainer = document.getElementById("bookkeeping-table-container");
+      if (tableContainer) tableContainer.innerHTML = `
+        <div style="padding: 32px; text-align: center; color: var(--text-muted);">
+          <div class="loading-spinner"></div>
+          <div style="font-size: 0.82rem;">Loading transactions...</div>
+        </div>`;
       RealAPI.listBookkeepingBatches()
         .then(batches => {
           BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);

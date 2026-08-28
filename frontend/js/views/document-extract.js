@@ -42,7 +42,10 @@ window.DocumentExtractView = {
             <div class="chart-title">Extracted Documents</div>
           </div>
           <div id="documents-table-container">
-            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Loading...</div>
+            <div style="padding: 32px; text-align: center; color: var(--text-muted);">
+              <div class="loading-spinner"></div>
+              <div style="font-size: 0.82rem;">Loading documents...</div>
+            </div>
           </div>
         </div>
 
@@ -83,7 +86,8 @@ window.DocumentExtractView = {
     id: rec.id,
     documentType: rec.structured_result?.document_type || "Document",
     summary: rec.structured_result?.summary || rec.raw_input_summary || "",
-    date: (rec.created_at || "").replace("T", " ").slice(0, 16)
+    date: (rec.created_at || "").replace("T", " ").slice(0, 16),
+    s3Key: rec.s3_key || null
   }),
 
   // Same shared FileUploadModal component used by Finance Tracker and
@@ -109,21 +113,60 @@ window.DocumentExtractView = {
   viewDetails: (id) => {
     const record = (DocumentExtractView.history || []).find(r => r.id === id);
     if (!record) return;
-    DocumentExtractView.showDetailsModal(record.structured_result, "Loaded from saved history");
+    DocumentExtractView.showDetailsModal(record.structured_result, record.s3_key || null);
   },
 
-  showDetailsModal: (result, statusLabel) => {
-    Modal.open({
-      title: result?.document_type || "Extracted Document",
-      bodyHtml: `
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          ${statusLabel}
-        </div>
-        ${DocumentExtractView.renderHumanSummary(result)}
-      `,
-      footerHtml: `<button class="btn-secondary" onclick="Modal.close()">Close</button>`
-    });
+  showDetailsModal: (result, s3Key) => {
+    const extractedPanel = `
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 10px 12px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        Extracted from uploaded document
+      </div>
+      ${DocumentExtractView.renderHumanSummary(result)}
+    `;
+
+    if (s3Key) {
+      // Side-by-side layout: document preview on the left, extracted data on the right
+      Modal.open({
+        title: result?.document_type || "Extracted Document",
+        bodyHtml: `
+          <div id="doc-preview-container" style="display: flex; gap: 16px; min-height: 380px;">
+            <div id="doc-preview-pane" style="flex: 1; border: 1px solid var(--border-glass); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02);">
+              <div style="text-align: center; color: var(--text-muted);">
+                <div class="loading-spinner"></div>
+                <div style="font-size: 0.8rem; margin-top: 8px;">Loading preview...</div>
+              </div>
+            </div>
+            <div style="flex: 1; overflow-y: auto;">${extractedPanel}</div>
+          </div>
+        `,
+        footerHtml: `<button class="btn-secondary" onclick="Modal.close()">Close</button>`
+      });
+      // Widen modal for side-by-side, then load presigned URL
+      const box = document.querySelector(".modal-box");
+      if (box) box.style.width = "880px";
+      RealAPI.getDownloadUrl(s3Key).then(url => {
+        const pane = document.getElementById("doc-preview-pane");
+        if (!pane) return;
+        const ext = s3Key.split(".").pop().toLowerCase();
+        if (ext === "pdf") {
+          pane.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none; min-height:380px;"></iframe>`;
+        } else if (["xlsx", "csv"].includes(ext)) {
+          pane.innerHTML = `<div style="padding:16px; font-size:0.82rem; color:var(--text-muted); text-align:center;">Spreadsheet — extracted data shown on the right</div>`;
+        } else {
+          pane.innerHTML = `<img src="${url}" style="max-width:100%; max-height:480px; object-fit:contain; display:block; margin:auto;" alt="Document preview">`;
+        }
+      }).catch(() => {
+        const pane = document.getElementById("doc-preview-pane");
+        if (pane) pane.innerHTML = `<div style="padding:16px; font-size:0.82rem; color:var(--text-muted); text-align:center;">Preview unavailable</div>`;
+      });
+    } else {
+      Modal.open({
+        title: result?.document_type || "Extracted Document",
+        bodyHtml: extractedPanel,
+        footerHtml: `<button class="btn-secondary" onclick="Modal.close()">Close</button>`
+      });
+    }
   },
 
   // --- Human-readable rendering -------------------------------------------

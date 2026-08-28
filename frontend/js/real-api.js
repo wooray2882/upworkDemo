@@ -83,6 +83,16 @@ window.RealAPI = (function () {
       if (!response.ok) throw new Error(`POST /uploads/presign failed: ${response.status}`);
       return response.json();
     },
+    getDownloadUrl: async (s3Key) => {
+      const response = await fetch(`${BASE_URL}/uploads/presign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "download", s3_key: s3Key })
+      });
+      if (!response.ok) throw new Error(`GET presign failed: ${response.status}`);
+      const data = await response.json();
+      return data.download_url;
+    },
     uploadToS3: async (uploadUrl, file) => {
       const response = await fetch(uploadUrl, {
         method: "PUT",
