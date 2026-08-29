@@ -118,14 +118,6 @@ window.DocumentExtractView = {
     DocumentExtractView.showDetailsModal(record.structured_result, record.s3_key || null, record);
   },
 
-  // Reads the JSON held by showDetailsModal (see _modalResult there) rather
-  // than taking it as an inlined string, so arbitrary characters in the
-  // extracted text (quotes, backslashes) can't break the button.
-  copyModalResultJSON: () => {
-    navigator.clipboard.writeText(JSON.stringify(DocumentExtractView._modalResult || {}, null, 2));
-    App.showToast("JSON copied to clipboard!");
-  },
-
   /**
    * Open the side-by-side modal with real S3 preview (iframe/img) on the left
    * and structured data inspector on the right.
@@ -134,14 +126,6 @@ window.DocumentExtractView = {
     const extractedPanel = DocumentExtractView.renderExtractedInspectorPanel(result, record);
 
     if (s3Key) {
-      // Held on the view controller (not inlined into the onclick attribute
-      // string below) - the extracted JSON is arbitrary text from the
-      // uploaded document, and any field containing a double-quote
-      // character (a quoted measurement, a quoted term, etc. - common in
-      // real invoice text) would otherwise prematurely close the HTML
-      // attribute and break the button, or worse, inject broken markup.
-      DocumentExtractView._modalResult = result || {};
-
       Modal.open({
         title: result?.document_type || "Extracted Document",
         bodyHtml: `
@@ -161,7 +145,6 @@ window.DocumentExtractView = {
           </div>
         `,
         footerHtml: `
-          <button class="btn-secondary" onclick="DocumentExtractView.copyModalResultJSON()">Copy JSON</button>
           <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="Modal.close()">Close</button>
         `
       });
@@ -309,12 +292,9 @@ window.DocumentExtractView = {
     return `
       <div class="extracted-inspector-panel" style="padding: 0; max-height: 75vh; overflow-y: auto;">
         
-        <!-- Status & Precision Badge -->
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-            <span>Extracted via AWS Bedrock Multimodal Vision</span>
-          </div>
+        <!-- Precision Badge - the underlying tech (Bedrock) isn't shown to
+             keep this a client-facing extraction result, not a dev tool -->
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.8rem; color: var(--accent-success); display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 14px;">
           <span style="font-family: var(--font-mono); font-size: 0.72rem; background: rgba(16,185,129,0.18); padding: 2px 8px; border-radius: 10px;">100% Strict Match</span>
         </div>
 
@@ -327,17 +307,6 @@ window.DocumentExtractView = {
         ${kpiHtml}
         ${lineItemsHtml}
         ${metaGridHtml}
-
-        <!-- Raw JSON Schema Accordion -->
-        <details style="background: rgba(11, 15, 25, 0.6); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 12px 16px; margin-top: 4px;">
-          <summary style="font-size: 0.8rem; font-weight: 600; color: var(--accent-cyan); cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
-            <span>Inspect Raw Bedrock JSON Output</span>
-            <span style="font-size: 0.72rem; color: var(--text-muted);">Payload Schema</span>
-          </summary>
-          <div class="json-editor-container" style="margin-top: 10px;">
-            ${DocumentExtractView.formatJSON(result || {})}
-          </div>
-        </details>
 
       </div>
     `;
@@ -443,13 +412,5 @@ window.DocumentExtractView = {
       return value ? "Yes" : "No";
     }
     return `${value}`;
-  },
-
-  formatJSON: (obj) => {
-    return JSON.stringify(obj, null, 2)
-      .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
-      .replace(/: "([^"]+)"/g, ': <span class="json-string">"$1"</span>')
-      .replace(/: ([0-9.]+)/g, ': <span class="json-number">$1</span>')
-      .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>');
   }
 };
