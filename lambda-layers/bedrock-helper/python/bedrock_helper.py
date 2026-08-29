@@ -63,7 +63,13 @@ def _call_bedrock(content, model_id: str | None = None) -> str:
 
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
+        # 1024 was too low: a full MAX_ROWS (20-row) batch, pretty-printed
+        # as JSON, commonly runs well past 130 lines and got cut off
+        # mid-object - the response was truncated, not malformed, and that
+        # surfaced downstream as "did not return valid JSON". 4096 gives a
+        # 20-record batch (any of the three features' schemas) comfortable
+        # headroom without materially changing response latency.
+        "max_tokens": 4096,
         "messages": [{"role": "user", "content": content}],
     })
 
