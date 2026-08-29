@@ -118,6 +118,14 @@ window.DocumentExtractView = {
     DocumentExtractView.showDetailsModal(record.structured_result, record.s3_key || null, record);
   },
 
+  // Reads the JSON held by showDetailsModal (see _modalResult there) rather
+  // than taking it as an inlined string, so arbitrary characters in the
+  // extracted text (quotes, backslashes) can't break the button.
+  copyModalResultJSON: () => {
+    navigator.clipboard.writeText(JSON.stringify(DocumentExtractView._modalResult || {}, null, 2));
+    App.showToast("JSON copied to clipboard!");
+  },
+
   /**
    * Open the side-by-side modal with real S3 preview (iframe/img) on the left
    * and structured data inspector on the right.
@@ -126,6 +134,14 @@ window.DocumentExtractView = {
     const extractedPanel = DocumentExtractView.renderExtractedInspectorPanel(result, record);
 
     if (s3Key) {
+      // Held on the view controller (not inlined into the onclick attribute
+      // string below) - the extracted JSON is arbitrary text from the
+      // uploaded document, and any field containing a double-quote
+      // character (a quoted measurement, a quoted term, etc. - common in
+      // real invoice text) would otherwise prematurely close the HTML
+      // attribute and break the button, or worse, inject broken markup.
+      DocumentExtractView._modalResult = result || {};
+
       Modal.open({
         title: result?.document_type || "Extracted Document",
         bodyHtml: `
@@ -145,7 +161,7 @@ window.DocumentExtractView = {
           </div>
         `,
         footerHtml: `
-          <button class="btn-secondary" onclick="navigator.clipboard.writeText(JSON.stringify(${JSON.stringify(result || {})}, null, 2)); App.showToast('JSON copied to clipboard!');">Copy JSON</button>
+          <button class="btn-secondary" onclick="DocumentExtractView.copyModalResultJSON()">Copy JSON</button>
           <button class="btn-secondary" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="Modal.close()">Close</button>
         `
       });
