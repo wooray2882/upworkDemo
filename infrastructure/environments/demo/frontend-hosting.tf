@@ -122,8 +122,13 @@ resource "null_resource" "frontend_deploy" {
   }
 
   provisioner "local-exec" {
+    # Cache-Control: no-cache forces both the browser and CloudFront to
+    # revalidate (via ETag) on every request instead of serving a stale
+    # copy from local disk cache - without this header S3/CloudFront send
+    # none, so browsers fall back to heuristic caching and can keep
+    # serving old JS/CSS for hours after a deploy + invalidation.
     command = <<-EOT
-      aws s3 sync ${path.module}/../../../frontend s3://${aws_s3_bucket.frontend.bucket} --delete
+      aws s3 sync ${path.module}/../../../frontend s3://${aws_s3_bucket.frontend.bucket} --delete --cache-control "no-cache, must-revalidate"
       aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.frontend.id} --paths "/*"
     EOT
   }
