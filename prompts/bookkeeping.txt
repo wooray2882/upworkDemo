@@ -9,16 +9,44 @@ record. Return ONLY valid JSON matching this schema:
       "amount": number,
       "currency": "string (ISO 4217, default USD)",
       "date": "string (YYYY-MM-DD)",
-      "category": "string (e.g. software, travel, office supplies, meals)"
+      "category": "string — MUST be exactly one of the categories listed below"
     }
   ],
   "transaction_count": number,
   "total_amount": number
 }
 
+The "category" field must always be exactly one of these standard business
+expense categories (the same convention used by QuickBooks and IRS Schedule
+C) — never invent a new category name or rename one of these:
+- Advertising & Marketing
+- Bank & Financial Fees
+- Contract Labor / Professional Services
+- Dues & Subscriptions
+- Equipment & Supplies
+- Insurance
+- Legal & Professional Fees
+- Meals & Entertainment
+- Office Supplies
+- Payroll & Wages
+- Rent & Lease
+- Repairs & Maintenance
+- Shipping & Postage
+- Software & Technology
+- Taxes & Licenses
+- Training & Education
+- Travel
+- Utilities
+- Investment / Capital Expenditure
+- Other / Uncategorized
+
 Rules:
 - One entry per distinct transaction found in the input.
-- If a field cannot be determined, use null — do not guess.
+- category is never null — if the vendor/description gives no reliable
+  signal for any specific category above, use "Other / Uncategorized"
+  rather than guessing at a more specific one.
+- If vendor, amount, currency, or date cannot be determined, use null for
+  that field — do not guess those.
 - Do not include any text outside the JSON object.
 
 Transaction batch:

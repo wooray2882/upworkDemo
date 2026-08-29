@@ -13,13 +13,21 @@ window.BookkeepingView = {
     batches.forEach(batch => {
       const txns = batch.structured_result?.transactions || [];
       txns.forEach((t, i) => {
+        // The prompt now constrains category to a fixed set of standard
+        // business expense categories (see prompts/bookkeeping.txt) with
+        // "Other / Uncategorized" as the honest fallback when the source
+        // data gives no real signal (e.g. an anonymized vendor code) - so
+        // category is never actually null anymore, but the || fallback
+        // stays as a safety net for older stored records from before this
+        // change.
+        const category = t.category || "Other / Uncategorized";
         rows.push({
           id: `${batch.id.slice(0, 8)}-${i}`,
           date: t.date || "—",
           vendor: t.vendor || "Unknown",
-          category: t.category || "uncategorized",
+          category,
           amount: Number(t.amount) || 0,
-          status: t.category ? "categorized" : "flagged"
+          status: category === "Other / Uncategorized" ? "flagged" : "categorized"
         });
       });
     });
