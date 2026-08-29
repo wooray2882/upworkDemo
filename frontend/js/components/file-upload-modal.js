@@ -36,17 +36,17 @@ window.FileUploadModal = (function () {
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">${config.description}</p>
 
-      <div id="file-drop-zone" style="border: 2px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 28px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 0.85rem;"
-        onclick="FileUploadModal.openFilePicker()"
+      <label for="file-upload-input" id="file-drop-zone"
+        style="border: 2px dashed rgba(255,255,255,0.15); border-radius: var(--radius-md); padding: 28px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; display: block;"
         ondragover="event.preventDefault(); document.getElementById('file-drop-zone').style.borderColor='var(--accent-primary)';"
         ondragleave="document.getElementById('file-drop-zone').style.borderColor='rgba(255,255,255,0.15)';"
-        ondrop="FileUploadModal.handleDrop(event)">
+        ondrop="event.preventDefault(); document.getElementById('file-drop-zone').style.borderColor='rgba(255,255,255,0.15)'; FileUploadModal.handleDrop(event);">
         Drag &amp; drop files here, or <strong style="color: var(--accent-primary);">click to choose</strong><br>
         <span style="font-size: 0.75rem; margin-top: 4px; display: inline-block;">Multiple files supported</span>
-      </div>
+      </label>
 
       <input id="file-upload-input" type="file" multiple accept="${config.accept}"
-        style="position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none;"
+        style="position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1;"
         onchange="FileUploadModal.handleFilesSelected(event.target.files)">
 
       <div id="file-upload-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto;">
@@ -86,13 +86,6 @@ window.FileUploadModal = (function () {
     if (btn) btn.disabled = !enabled;
   };
 
-  // Called directly from onclick on the drop zone — must stay synchronous
-  // with the user gesture so the browser allows opening the file picker.
-  const openFilePicker = () => {
-    const input = document.getElementById("file-upload-input");
-    if (input) input.click();
-  };
-
   // Reads a CSV file client-side and returns a new tiny File capped at
   // MAX_CSV_ROWS lines. This runs BEFORE the S3 upload so only the small
   // slice ever leaves the browser — critical on slow connections.
@@ -111,26 +104,37 @@ window.FileUploadModal = (function () {
     reader.readAsText(file);
   });
 
-  const addFiles = (fileList) => {
+  const readRowCount = (file) => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve((e.target.result || "").split("\n").filter(l => l.trim()).length);
+    reader.onerror = () => resolve(0);
+    reader.readAsText(file.slice(0, 500_000));
+  });
+
+  // Async: reads row counts first, shows warnings, THEN enables the submit
+  // button so the user always sees the truncation notice before uploading.
+  const addFiles = async (fileList) => {
+    const newEntries = [];
     for (const file of fileList) {
       const entry = { file, status: "pending", error: null, rowWarning: null };
+      newEntries.push(entry);
       files.push(entry);
-
-      // Show a preview warning immediately; actual truncation happens in uploadOne
-      if (file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".xlsx")) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const count = (e.target.result || "").split("\n").filter(l => l.trim()).length;
-          if (count > MAX_CSV_ROWS) {
-            entry.rowWarning = `${count} rows — only the first ${MAX_CSV_ROWS} will be sent`;
-            refreshList();
-          }
-        };
-        reader.readAsText(file.slice(0, 500_000));
-      }
     }
+    setSubmitEnabled(false); // hold until checks complete
     refreshList();
-    setSubmitEnabled(files.length > 0);
+
+    await Promise.all(newEntries.map(async (entry) => {
+      const name = entry.file.name.toLowerCase();
+      if (name.endsWith(".csv") || name.endsWith(".xlsx")) {
+        const count = await readRowCount(entry.file);
+        if (count > MAX_CSV_ROWS) {
+          entry.rowWarning = `${count} rows detected — only the first ${MAX_CSV_ROWS} will be uploaded`;
+        }
+      }
+    }));
+
+    refreshList();
+    setSubmitEnabled(files.some(f => f.status === "pending"));
   };
 
   const handleFilesSelected = (fileList) => addFiles(fileList);
@@ -207,5 +211,5 @@ window.FileUploadModal = (function () {
     }
   };
 
-  return { open, handleFilesSelected, handleDrop, removeFile, submit, openFilePicker };
+  return { open, handleFilesSelected, handleDrop, removeFile, submit };
 })();
