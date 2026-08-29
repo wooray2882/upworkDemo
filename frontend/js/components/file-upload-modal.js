@@ -25,7 +25,7 @@ window.FileUploadModal = (function () {
       bodyHtml: render(),
       footerHtml: `
         <button class="btn-secondary" onclick="Modal.close()">Cancel</button>
-        <button class="btn-secondary" id="file-upload-submit" style="background: var(--accent-primary); color: white; border-color: transparent;" disabled onclick="FileUploadModal.submit()">
+        <button class="btn-secondary" id="file-upload-submit" style="background: var(--accent-primary); color: white; border-color: transparent;" onclick="FileUploadModal.handleActionClick()">
           Upload &amp; Process
         </button>
       `
@@ -81,9 +81,13 @@ window.FileUploadModal = (function () {
     if (list) list.innerHTML = renderFileList();
   };
 
-  const setSubmitEnabled = (enabled) => {
+  // The button is only ever disabled mid-flight (row-count check running,
+  // or an upload in progress) - never just because no files are selected
+  // yet, since with no files selected a click is supposed to open the OS
+  // file picker (see handleActionClick).
+  const setBusy = (busy) => {
     const btn = document.getElementById("file-upload-submit");
-    if (btn) btn.disabled = !enabled;
+    if (btn) btn.disabled = busy;
   };
 
   // Reads a CSV file client-side and returns a new tiny File capped at
@@ -120,7 +124,7 @@ window.FileUploadModal = (function () {
       newEntries.push(entry);
       files.push(entry);
     }
-    setSubmitEnabled(false); // hold until checks complete
+    setBusy(true); // hold until checks complete
     refreshList();
 
     await Promise.all(newEntries.map(async (entry) => {
@@ -134,7 +138,7 @@ window.FileUploadModal = (function () {
     }));
 
     refreshList();
-    setSubmitEnabled(files.some(f => f.status === "pending"));
+    setBusy(false);
   };
 
   const handleFilesSelected = (fileList) => addFiles(fileList);
@@ -149,7 +153,20 @@ window.FileUploadModal = (function () {
   const removeFile = (index) => {
     files.splice(index, 1);
     refreshList();
-    setSubmitEnabled(files.length > 0);
+  };
+
+  // The single "Upload & Process" button does both jobs its label promises:
+  // with nothing picked yet, clicking it opens the OS file dialog (same as
+  // the drop zone); once files are queued, the same click submits them.
+  // Calling input.click() synchronously inside this real click handler is
+  // still a trusted user gesture, so the OS dialog opens reliably.
+  const handleActionClick = () => {
+    const hasPending = files.some(f => f.status === "pending");
+    if (!hasPending) {
+      document.getElementById("file-upload-input").click();
+      return;
+    }
+    submit();
   };
 
   const uploadOne = async (entry) => {
@@ -180,7 +197,7 @@ window.FileUploadModal = (function () {
   };
 
   const submit = async () => {
-    setSubmitEnabled(false);
+    setBusy(true);
     const pending = files.filter(f => f.status === "pending");
 
     // Small client-side concurrency cap so a large batch doesn't fire a
@@ -200,7 +217,7 @@ window.FileUploadModal = (function () {
     if (failed.length === 0) {
       Modal.close();
     } else {
-      setSubmitEnabled(true);
+      setBusy(false);
     }
 
     if (succeeded.length > 0 && config.onComplete) {
@@ -211,5 +228,5 @@ window.FileUploadModal = (function () {
     }
   };
 
-  return { open, handleFilesSelected, handleDrop, removeFile, submit };
+  return { open, handleFilesSelected, handleDrop, removeFile, handleActionClick };
 })();
