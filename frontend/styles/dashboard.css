@@ -129,6 +129,18 @@
   overflow: hidden;
 }
 
+/* A <canvas> has no intrinsic connection to its container's size - without
+   this it renders at the browser's default 300x150px canvas dimensions
+   and just sits centered in a mostly-empty box, however tall/wide
+   .chart-container actually is. ChartRenderer reads getBoundingClientRect()
+   to size the drawing buffer (see components/charts.js), so this is what
+   makes that measurement equal the real container size. */
+.chart-container canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* Document Extractor Dual-View & Modal Inspector Layout */
 .dual-view-grid {
   display: grid;
