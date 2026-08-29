@@ -13,13 +13,16 @@
 window.FileUploadModal = (function () {
   const CONCURRENCY = 3;
   const MAX_CSV_ROWS = 20; // hard cap — only this many rows go to S3 and Bedrock
+  const MAX_FILES = 20; // hard cap on files per batch (receipts, images, PDFs) — same speed rationale as MAX_CSV_ROWS
 
   let config = null;
   let files = []; // { file, status: "pending"|"uploading"|"done"|"error", error, rowWarning }
+  let batchWarning = null; // set when a selection was truncated to MAX_FILES
 
   const open = (opts) => {
     config = opts;
     files = [];
+    batchWarning = null;
     Modal.open({
       title: opts.title,
       bodyHtml: render(),
@@ -42,18 +45,24 @@ window.FileUploadModal = (function () {
         ondragleave="document.getElementById('file-drop-zone').style.borderColor='rgba(255,255,255,0.15)';"
         ondrop="event.preventDefault(); document.getElementById('file-drop-zone').style.borderColor='rgba(255,255,255,0.15)'; FileUploadModal.handleDrop(event);">
         Drag &amp; drop files here, or <strong style="color: var(--accent-primary);">click to choose</strong><br>
-        <span style="font-size: 0.75rem; margin-top: 4px; display: inline-block;">Multiple files supported</span>
+        <span style="font-size: 0.75rem; margin-top: 4px; display: inline-block;">Up to ${MAX_FILES} files per batch</span>
       </label>
 
       <input id="file-upload-input" type="file" multiple accept="${config.accept}"
         style="position: absolute; width: 0.1px; height: 0.1px; opacity: 0; overflow: hidden; z-index: -1;"
         onchange="FileUploadModal.handleFilesSelected(event.target.files)">
 
+      <div id="file-upload-batch-warning">${renderBatchWarning()}</div>
+
       <div id="file-upload-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto;">
         ${renderFileList()}
       </div>
     </div>
   `;
+
+  const renderBatchWarning = () => batchWarning
+    ? `<div style="font-size: 0.78rem; color: var(--accent-warning); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-sm, 6px); padding: 8px 10px;">⚠ ${batchWarning}</div>`
+    : "";
 
   const STATUS_LABEL = { pending: "", uploading: "Uploading...", done: "Done", error: "Failed" };
   const STATUS_COLOR = { pending: "var(--text-muted)", uploading: "var(--accent-cyan)", done: "var(--accent-success)", error: "var(--accent-danger)" };
@@ -79,6 +88,8 @@ window.FileUploadModal = (function () {
   const refreshList = () => {
     const list = document.getElementById("file-upload-list");
     if (list) list.innerHTML = renderFileList();
+    const warning = document.getElementById("file-upload-batch-warning");
+    if (warning) warning.innerHTML = renderBatchWarning();
   };
 
   // The button is only ever disabled mid-flight (row-count check running,
@@ -117,9 +128,21 @@ window.FileUploadModal = (function () {
 
   // Async: reads row counts first, shows warnings, THEN enables the submit
   // button so the user always sees the truncation notice before uploading.
+  // Also enforces MAX_FILES on the batch itself (separate from the
+  // per-CSV row cap) - this is what caps a drag of many receipts/images,
+  // shown before any upload starts, same as the row-count warning.
   const addFiles = async (fileList) => {
+    const incoming = Array.from(fileList);
+    const availableSlots = Math.max(0, MAX_FILES - files.length);
+    const accepted = incoming.slice(0, availableSlots);
+    const rejectedCount = incoming.length - accepted.length;
+
+    batchWarning = rejectedCount > 0
+      ? `Only ${MAX_FILES} files can be processed per batch — ${rejectedCount} file${rejectedCount === 1 ? "" : "s"} were not added.`
+      : null;
+
     const newEntries = [];
-    for (const file of fileList) {
+    for (const file of accepted) {
       const entry = { file, status: "pending", error: null, rowWarning: null };
       newEntries.push(entry);
       files.push(entry);
@@ -159,6 +182,7 @@ window.FileUploadModal = (function () {
 
   const removeFile = (index) => {
     files.splice(index, 1);
+    if (files.length < MAX_FILES) batchWarning = null; // stale once there's room again
     refreshList();
   };
 
