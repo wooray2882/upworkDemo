@@ -12,7 +12,7 @@
  */
 window.FileUploadModal = (function () {
   const CONCURRENCY = 3;
-  const MAX_CSV_ROWS = 30; // matches server-side truncation limit — keeps demo fast
+  const MAX_CSV_ROWS = 20; // hard cap — only this many rows go to S3 and Bedrock
 
   let config = null;
   let files = []; // { file, status: "pending"|"uploading"|"done"|"error", error, rowWarning }
@@ -93,14 +93,22 @@ window.FileUploadModal = (function () {
     if (input) input.click();
   };
 
-  const countCsvRows = (file) => new Promise(resolve => {
+  // Reads a CSV file client-side and returns a new tiny File capped at
+  // MAX_CSV_ROWS lines. This runs BEFORE the S3 upload so only the small
+  // slice ever leaves the browser — critical on slow connections.
+  const truncateCsvFile = (file) => new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const lines = (e.target.result || "").split("\n").filter(l => l.trim()).length;
-      resolve(lines);
+      const lines = (e.target.result || "").split("\n").filter(l => l.trim());
+      if (lines.length <= MAX_CSV_ROWS) {
+        resolve({ file, originalCount: lines.length, truncated: false });
+        return;
+      }
+      const sliced = new File([lines.slice(0, MAX_CSV_ROWS).join("\n")], file.name, { type: "text/csv" });
+      resolve({ file: sliced, originalCount: lines.length, truncated: true });
     };
-    reader.onerror = () => resolve(0);
-    reader.readAsText(file.slice(0, 2_000_000));
+    reader.onerror = () => resolve({ file, originalCount: 0, truncated: false });
+    reader.readAsText(file);
   });
 
   const addFiles = (fileList) => {
@@ -108,13 +116,17 @@ window.FileUploadModal = (function () {
       const entry = { file, status: "pending", error: null, rowWarning: null };
       files.push(entry);
 
+      // Show a preview warning immediately; actual truncation happens in uploadOne
       if (file.name.toLowerCase().endsWith(".csv") || file.name.toLowerCase().endsWith(".xlsx")) {
-        countCsvRows(file).then(count => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const count = (e.target.result || "").split("\n").filter(l => l.trim()).length;
           if (count > MAX_CSV_ROWS) {
-            entry.rowWarning = `${count} rows detected — file will be truncated to the first ${MAX_CSV_ROWS} rows`;
+            entry.rowWarning = `${count} rows — only the first ${MAX_CSV_ROWS} will be sent`;
             refreshList();
           }
-        });
+        };
+        reader.readAsText(file.slice(0, 500_000));
       }
     }
     refreshList();
@@ -140,8 +152,18 @@ window.FileUploadModal = (function () {
     entry.status = "uploading";
     refreshList();
     try {
-      const { upload_url, s3_key } = await RealAPI.presignUpload(entry.file.name, entry.file.type);
-      await RealAPI.uploadToS3(upload_url, entry.file);
+      // Truncate CSV client-side BEFORE upload — only a small slice goes to S3
+      let fileToUpload = entry.file;
+      if (entry.file.name.toLowerCase().endsWith(".csv")) {
+        const { file, truncated, originalCount } = await truncateCsvFile(entry.file);
+        fileToUpload = file;
+        if (truncated) {
+          entry.rowWarning = `Sent first ${MAX_CSV_ROWS} of ${originalCount} rows`;
+          refreshList();
+        }
+      }
+      const { upload_url, s3_key } = await RealAPI.presignUpload(fileToUpload.name, fileToUpload.type || "text/csv");
+      await RealAPI.uploadToS3(upload_url, fileToUpload);
       const result = await config.submitFn(s3_key);
       entry.status = "done";
       entry.structuredResult = result?.output?.structured_result ?? null;

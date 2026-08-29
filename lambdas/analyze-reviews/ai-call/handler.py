@@ -29,7 +29,7 @@ PROMPT_TEXT = os.environ["PROMPT_TEXT"]
 UPLOADS_BUCKET = os.environ.get("UPLOADS_BUCKET")
 SPREADSHEET_PARSERS = {".xlsx": parse_xlsx_rows, ".csv": parse_csv_rows}
 
-MAX_ROWS = 30
+MAX_ROWS = 20
 
 
 def _truncate(text: str):

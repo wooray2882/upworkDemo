@@ -36,7 +36,7 @@ SPREADSHEET_PARSERS = {".xlsx": parse_xlsx_rows, ".csv": parse_csv_rows}
 # Hard cap for demo speed: keeps the Bedrock prompt small so each upload
 # processes in a few seconds. Raise this for a production build once the
 # Step Functions / Lambda timeouts have been tuned for larger payloads.
-MAX_ROWS = 30
+MAX_ROWS = 20
 
 
 def _truncate(text: str):
