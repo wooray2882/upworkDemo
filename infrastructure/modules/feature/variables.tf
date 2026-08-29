@@ -85,3 +85,21 @@ variable "uploads_bucket" {
   type        = string
   default     = ""
 }
+
+variable "rag_data_bucket" {
+  description = "Shared RAG knowledge base S3 data source bucket name from the core-engine module. The postprocess Lambda writes a text summary of each new record here so conversational chat queries stay current."
+  type        = string
+  default     = ""
+}
+
+variable "rag_knowledge_base_id" {
+  description = "Shared Bedrock Knowledge Base ID from the core-engine module - the postprocess Lambda triggers a re-index against this after writing a new summary."
+  type        = string
+  default     = ""
+}
+
+variable "rag_data_source_id" {
+  description = "Shared Bedrock Knowledge Base data source ID from the core-engine module - required alongside rag_knowledge_base_id for StartIngestionJob."
+  type        = string
+  default     = ""
+}

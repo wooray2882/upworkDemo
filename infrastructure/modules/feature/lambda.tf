@@ -53,8 +53,11 @@ resource "aws_lambda_function" "postprocess" {
 
   environment {
     variables = {
-      TABLE_NAME   = aws_dynamodb_table.this.name
-      FEATURE_NAME = var.feature_name
+      TABLE_NAME             = aws_dynamodb_table.this.name
+      FEATURE_NAME           = var.feature_name
+      RAG_DATA_BUCKET        = var.rag_data_bucket
+      RAG_KNOWLEDGE_BASE_ID  = var.rag_knowledge_base_id
+      RAG_DATA_SOURCE_ID     = var.rag_data_source_id
     }
   }
 

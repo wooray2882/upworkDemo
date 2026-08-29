@@ -5,40 +5,12 @@
 window.RAGChat = (function() {
   let activeContextView = "bookkeeping";
 
+  // The active app's chat data is scoped server-side too - the RAG query
+  // Lambda filters retrieval to this view's records (see
+  // CONTEXT_TO_FEATURE_TYPE in lambdas/rag-query/handler.py), so each app's
+  // assistant only ever answers from its own data.
   const init = (viewName) => {
     activeContextView = viewName || "bookkeeping";
-    renderSuggestedPrompts();
-  };
-
-  const renderSuggestedPrompts = () => {
-    const pillsContainer = document.getElementById("prompt-pills-list");
-    if (!pillsContainer) return;
-
-    let prompts = [];
-    if (activeContextView === "bookkeeping") {
-      prompts = [
-        "What were my top 3 software expenses in March?",
-        "Are there any flagged transactions or anomalies?",
-        "How much total was spent on cloud hosting?"
-      ];
-    } else if (activeContextView === "reviews") {
-      prompts = [
-        "What is the main complaint regarding shipping?",
-        "What features do customers praise the most?"
-      ];
-    } else {
-      prompts = [
-        "Extract line item summary for Invoice #INV-8841",
-        "Verify tax ID and vendor payment terms"
-      ];
-    }
-
-    pillsContainer.innerHTML = prompts.map(p => `
-      <button class="prompt-pill" onclick="RAGChat.sendPrompt('${p}')">
-        <span>${p}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-      </button>
-    `).join("");
   };
 
   const sendPrompt = async (promptText) => {

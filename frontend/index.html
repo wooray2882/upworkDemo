@@ -67,8 +67,10 @@
       <!-- Active view rendered here via JS -->
     </main>
 
-    <!-- Insights Assistant Side Panel -->
-    <aside class="rag-chat-panel" id="rag-chat-panel">
+    <!-- Insights Assistant: closed by default, floats above the page as a
+         compact window near its own toggle bubble - not a full-height
+         drawer that's part of the page layout. -->
+    <aside class="rag-chat-panel collapsed" id="rag-chat-panel">
       <div class="chat-header">
         <div class="chat-title-group">
           <div class="chat-ai-icon">⚡</div>
@@ -86,20 +88,14 @@
       <div class="chat-messages" id="chat-messages-list">
         <div class="message-wrapper assistant">
           <div class="chat-bubble">
-            Hello! I'm your insights assistant. Ask me questions about your transactions, extracted documents, or customer reviews.
+            Hi! Ask me anything about your data here — I'll answer in plain language.
           </div>
         </div>
       </div>
 
-      <!-- Quick Action Prompt Pills -->
-      <div class="prompt-pills-container">
-        <div class="pills-title">Suggested Questions</div>
-        <div id="prompt-pills-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      </div>
-
       <!-- Chat Input Field -->
       <div class="chat-input-area">
-        <input type="text" id="chat-input-field" class="chat-input" placeholder="Ask a question (e.g. 'Software spend?')...">
+        <input type="text" id="chat-input-field" class="chat-input" placeholder="Ask a question...">
         <button class="btn-send" onclick="RAGChat.sendPrompt()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
         </button>

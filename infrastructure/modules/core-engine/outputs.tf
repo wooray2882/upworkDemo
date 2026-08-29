@@ -43,6 +43,11 @@ output "rag_knowledge_base_id" {
   value       = aws_bedrockagent_knowledge_base.rag.id
 }
 
+output "rag_data_source_id" {
+  description = "ID of the knowledge base's S3 data source - required alongside rag_knowledge_base_id to call StartIngestionJob."
+  value       = aws_bedrockagent_data_source.rag.data_source_id
+}
+
 output "rag_vector_bucket_arn" {
   description = "ARN of the S3 Vectors bucket backing the knowledge base (not OpenSearch)."
   value       = aws_s3vectors_vector_bucket.rag.vector_bucket_arn

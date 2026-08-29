@@ -165,6 +165,41 @@ def to_dynamodb_safe(value):
 
 
 _s3 = boto3.client("s3")
+_bedrock_agent = boto3.client("bedrock-agent")
+
+
+def index_for_rag(bucket: str, key: str, text: str, metadata: dict, knowledge_base_id: str, data_source_id: str):
+    """Writes a plain-text record summary (plus a metadata sidecar the
+    knowledge base reads for filtering - see rag-query's per-feature filter)
+    to the RAG data source bucket, then triggers a re-index. Without this,
+    the knowledge base only ever reflects whatever was ingested once,
+    manually, in the past - new uploads never show up in chat answers.
+
+    Best-effort and silent on failure: StartIngestionJob commonly throws
+    ConflictException when a job is already in flight (e.g. two uploads
+    close together), and a RAG sync hiccup shouldn't fail the postprocess
+    Lambda - the record is already durably saved to DynamoDB by the time
+    this runs, which is the part that actually matters."""
+    if not bucket or not knowledge_base_id or not data_source_id:
+        return
+    try:
+        _s3.put_object(Bucket=bucket, Key=key, Body=text.encode("utf-8"), ContentType="text/plain")
+        _s3.put_object(
+            Bucket=bucket,
+            Key=f"{key}.metadata.json",
+            Body=json.dumps({
+                # Bedrock's metadata.json sidecar expects raw values here,
+                # not a {"value": ..., "type": ...} wrapper - the wrapped
+                # form is syntactically valid JSON but fails Bedrock's
+                # schema check with a misleading "not in valid JSON format"
+                # error, caught live via get-ingestion-job's failureReasons.
+                "metadataAttributes": metadata
+            }).encode("utf-8"),
+            ContentType="application/json",
+        )
+        _bedrock_agent.start_ingestion_job(knowledgeBaseId=knowledge_base_id, dataSourceId=data_source_id)
+    except Exception as exc:
+        print(f"RAG ingestion skipped (non-fatal): {exc}")
 
 
 def read_s3_object(bucket: str, key: str) -> bytes:

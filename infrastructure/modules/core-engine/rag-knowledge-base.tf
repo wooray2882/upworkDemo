@@ -145,6 +145,34 @@ resource "aws_bedrockagent_data_source" "rag" {
   }
 }
 
+# Lets feature post-process Lambdas write a real-time text summary of each
+# new record into the RAG data source bucket and trigger a re-index, so
+# conversational queries reflect what was just uploaded instead of a
+# one-time/stale snapshot. Without this, nothing ever updates the S3 data
+# source after its initial population - caught live: new uploads never
+# appeared in chat answers because no Lambda wrote to this bucket or called
+# StartIngestionJob at all.
+resource "aws_iam_role_policy" "rag_ingest_write" {
+  name = "${var.project_name}-rag-ingest-write"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:DeleteObject"]
+        Resource = "${aws_s3_bucket.rag_data.arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = "bedrock:StartIngestionJob"
+        Resource = aws_bedrockagent_knowledge_base.rag.arn
+      }
+    ]
+  })
+}
+
 # Lets feature Lambdas (e.g. the rag-query Lambda, environments/demo/rag-query.tf)
 # query this knowledge base directly via bedrock-agent-runtime Retrieve /
 # RetrieveAndGenerate, attached to the same shared exec role every Lambda uses.

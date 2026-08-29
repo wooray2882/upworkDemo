@@ -65,6 +65,9 @@ module "document_extractor" {
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
   uploads_bucket               = module.core_engine.uploads_bucket
+  rag_data_bucket               = module.core_engine.rag_data_bucket
+  rag_knowledge_base_id         = module.core_engine.rag_knowledge_base_id
+  rag_data_source_id            = module.core_engine.rag_data_source_id
 }
 
 module "review_analyzer" {
@@ -84,6 +87,9 @@ module "review_analyzer" {
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
   uploads_bucket               = module.core_engine.uploads_bucket
+  rag_data_bucket               = module.core_engine.rag_data_bucket
+  rag_knowledge_base_id         = module.core_engine.rag_knowledge_base_id
+  rag_data_source_id            = module.core_engine.rag_data_source_id
 }
 
 module "bookkeeping_tracker" {
@@ -103,4 +109,7 @@ module "bookkeeping_tracker" {
   bedrock_helper_layer_arn     = module.core_engine.bedrock_helper_layer_arn
   step_functions_exec_role_arn = module.core_engine.step_functions_exec_role_arn
   uploads_bucket               = module.core_engine.uploads_bucket
+  rag_data_bucket               = module.core_engine.rag_data_bucket
+  rag_knowledge_base_id         = module.core_engine.rag_knowledge_base_id
+  rag_data_source_id            = module.core_engine.rag_data_source_id
 }

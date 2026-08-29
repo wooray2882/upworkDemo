@@ -1,27 +1,34 @@
-/* RAG Conversational Chat Side Panel & API Debugger */
+/* RAG Conversational Chat Widget & API Debugger */
 
-/* Floating hover-in panel: always an overlay above the canvas (not part of
-   the .app-container flex layout), so .main-content keeps full width
-   whether the assistant is open or closed. */
+/* A genuine floating widget: a compact window anchored above its own
+   toggle bubble in the corner, not a full-height drawer built into the
+   page layout. Closed by default (see index.html's initial "collapsed"
+   class) - the bubble is what's visible on first load. */
 .rag-chat-panel {
   width: 380px;
-  max-width: 90vw;
+  max-width: calc(100vw - 48px);
+  height: 560px;
+  max-height: calc(100vh - 120px);
   background: rgba(11, 15, 25, 0.97);
   backdrop-filter: var(--backdrop-blur);
-  border-left: 1px solid var(--border-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   position: fixed;
-  right: 0;
-  top: 70px;
-  bottom: 0;
+  right: 24px;
+  bottom: 92px;
   z-index: 40;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.65);
+  transform-origin: bottom right;
+  transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
+  overflow: hidden;
 }
 
 .rag-chat-panel.collapsed {
-  transform: translateX(100%);
+  transform: scale(0.92) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .chat-close-btn {
@@ -176,45 +183,6 @@
 .rag-citation:hover {
   background: rgba(6, 182, 212, 0.3);
   transform: translateY(-1px);
-}
-
-/* Prompt Suggestions Pills */
-.prompt-pills-container {
-  padding: 12px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid var(--border-glass);
-  background: rgba(17, 24, 39, 0.4);
-}
-
-.pills-title {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.prompt-pill {
-  padding: 8px 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-md);
-  font-size: 0.78rem;
-  color: var(--text-main);
-  cursor: pointer;
-  text-align: left;
-  transition: var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.prompt-pill:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--border-glass-glow);
-  color: #ffffff;
 }
 
 /* Chat Input Bar */
