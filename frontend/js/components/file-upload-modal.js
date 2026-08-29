@@ -129,11 +129,18 @@ window.FileUploadModal = (function () {
 
     await Promise.all(newEntries.map(async (entry) => {
       const name = entry.file.name.toLowerCase();
-      if (name.endsWith(".csv") || name.endsWith(".xlsx")) {
+      if (name.endsWith(".csv")) {
         const count = await readRowCount(entry.file);
         if (count > MAX_CSV_ROWS) {
           entry.rowWarning = `${count} rows detected — only the first ${MAX_CSV_ROWS} will be uploaded`;
         }
+      } else if (name.endsWith(".xlsx")) {
+        // .xlsx is a binary zip container, not plain text - FileReader
+        // can't count its rows client-side without a full parsing library.
+        // The server always caps processing at MAX_ROWS regardless, so
+        // this is a guaranteed, accurate-in-effect notice rather than a
+        // (potentially wrong, since we can't measure it) row count.
+        entry.rowWarning = `Only the first ${MAX_CSV_ROWS} rows of this spreadsheet will be processed`;
       }
     }));
 

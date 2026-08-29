@@ -59,7 +59,33 @@ window.ReviewAnalyzerView = {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = ReviewAnalyzerView.liveData || [];
+    // Nothing renders until real data is in hand - no zero-value cards that
+    // pop to real numbers a moment later. Just a loading state, then the
+    // fully-populated dashboard in one paint.
+    if (!ReviewAnalyzerView.liveData) {
+      mainEl.innerHTML = `
+        <div class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; color: var(--text-muted);">
+          <div class="loading-spinner"></div>
+          <div style="font-size: 0.9rem; margin-top: 14px;">Loading Sentiment Analyzer...</div>
+        </div>`;
+      RealAPI.listReviewBatches()
+        .then(batches => {
+          ReviewAnalyzerView.rawBatches = batches;
+          ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
+          ReviewAnalyzerView.render();
+        })
+        .catch(err => {
+          mainEl.innerHTML = `
+            <div class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; color: var(--text-muted); gap: 8px;">
+              <div style="font-size: 1.6rem;">⚠️</div>
+              <div style="font-size: 0.9rem;">Could not load stored records: ${err.message}</div>
+            </div>`;
+          App.showToast(`Could not load stored records: ${err.message}`);
+        });
+      return;
+    }
+
+    const data = ReviewAnalyzerView.liveData;
     const positiveCount = data.filter(r => r.sentiment === "positive").length;
     const negativeCount = data.filter(r => r.sentiment === "negative").length;
     const positiveRate = data.length ? (positiveCount / data.length * 100) : 0;
@@ -99,7 +125,7 @@ window.ReviewAnalyzerView = {
             <div class="kpi-value">${positiveRate.toFixed(1)}%</div>
             <div class="kpi-footer">
               <span class="trend-pill up">${positiveCount} of ${data.length} Reviews</span>
-              <span style="color: var(--text-muted);">${ReviewAnalyzerView.liveData ? "up to date" : "loading..."}</span>
+              <span style="color: var(--text-muted);">up to date</span>
             </div>
           </div>
 
@@ -144,24 +170,6 @@ window.ReviewAnalyzerView = {
     }, 50);
 
     RAGChat.init("reviews");
-
-    // Fetch real records from DynamoDB (via GET /analyze-reviews) once,
-    // then re-render with live data instead of MockAPI's static sample rows.
-    if (!ReviewAnalyzerView.liveData) {
-      const tableContainer = document.getElementById("review-table-container");
-      if (tableContainer) tableContainer.innerHTML = `
-        <div style="padding: 32px; text-align: center; color: var(--text-muted);">
-          <div class="loading-spinner"></div>
-          <div style="font-size: 0.82rem;">Loading reviews...</div>
-        </div>`;
-      RealAPI.listReviewBatches()
-        .then(batches => {
-          ReviewAnalyzerView.rawBatches = batches;
-          ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
-          ReviewAnalyzerView.render();
-        })
-        .catch(err => App.showToast(`Could not load stored records: ${err.message}`));
-    }
   },
 
   // Lets a real user upload their own reviews to test with, instead of

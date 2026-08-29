@@ -67,7 +67,32 @@ window.BookkeepingView = {
     const mainEl = document.getElementById("view-content");
     if (!mainEl) return;
 
-    const data = BookkeepingView.liveData || [];
+    // Nothing renders until real data is in hand - no zero-value cards that
+    // pop to real numbers a moment later. Just a loading state, then the
+    // fully-populated dashboard in one paint.
+    if (!BookkeepingView.liveData) {
+      mainEl.innerHTML = `
+        <div class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; color: var(--text-muted);">
+          <div class="loading-spinner"></div>
+          <div style="font-size: 0.9rem; margin-top: 14px;">Loading Finance Tracker...</div>
+        </div>`;
+      RealAPI.listBookkeepingBatches()
+        .then(batches => {
+          BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
+          BookkeepingView.render();
+        })
+        .catch(err => {
+          mainEl.innerHTML = `
+            <div class="fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; color: var(--text-muted); gap: 8px;">
+              <div style="font-size: 1.6rem;">⚠️</div>
+              <div style="font-size: 0.9rem;">Could not load stored records: ${err.message}</div>
+            </div>`;
+          App.showToast(`Could not load stored records: ${err.message}`);
+        });
+      return;
+    }
+
+    const data = BookkeepingView.liveData;
     const totalExpenses = data.reduce((sum, t) => sum + t.amount, 0);
     const flaggedCount = data.filter(t => t.status === "flagged").length;
     const avgTransaction = data.length ? totalExpenses / data.length : 0;
@@ -106,7 +131,7 @@ window.BookkeepingView = {
             <div class="kpi-value">$${totalExpenses.toFixed(2)}</div>
             <div class="kpi-footer">
               <span class="trend-pill down">${data.length} transactions</span>
-              <span style="color: var(--text-muted);">${BookkeepingView.liveData ? "up to date" : "loading..."}</span>
+              <span style="color: var(--text-muted);">up to date</span>
             </div>
           </div>
 
@@ -212,24 +237,6 @@ window.BookkeepingView = {
 
     // Initialize RAG chat context
     RAGChat.init("bookkeeping");
-
-    // Fetch real records from DynamoDB (via GET /bookkeeping-query) once,
-    // then re-render with live data. No MockAPI fallback - an empty/loading
-    // state is shown until this resolves rather than fabricated numbers.
-    if (!BookkeepingView.liveData) {
-      const tableContainer = document.getElementById("bookkeeping-table-container");
-      if (tableContainer) tableContainer.innerHTML = `
-        <div style="padding: 32px; text-align: center; color: var(--text-muted);">
-          <div class="loading-spinner"></div>
-          <div style="font-size: 0.82rem;">Loading transactions...</div>
-        </div>`;
-      RealAPI.listBookkeepingBatches()
-        .then(batches => {
-          BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
-          BookkeepingView.render();
-        })
-        .catch(err => App.showToast(`Could not load stored records: ${err.message}`));
-    }
   },
 
   filterData: () => {
