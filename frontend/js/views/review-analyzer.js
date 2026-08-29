@@ -165,9 +165,9 @@ window.ReviewAnalyzerView = {
       </div>
     `;
 
-    setTimeout(() => {
-      DataTable.renderReviewTable("review-table-container", data);
-    }, 50);
+    // No canvas involved here (the table is plain HTML), so it can render
+    // in the same paint as the rest of the dashboard - no artificial delay.
+    DataTable.renderReviewTable("review-table-container", data);
 
     RAGChat.init("reviews");
   },

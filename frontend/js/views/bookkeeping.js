@@ -98,7 +98,7 @@ window.BookkeepingView = {
     const avgTransaction = data.length ? totalExpenses / data.length : 0;
     const categoriesTracked = new Set(data.map(t => t.category)).size;
 
-    mainEl.innerHTML = `
+    const dashboardHtml = `
       <div class="fade-in" style="display: flex; flex-direction: column; gap: 24px;">
         
         <!-- Header Info -->
@@ -227,13 +227,28 @@ window.BookkeepingView = {
       </div>
     `;
 
-    // Render Charts (real aggregates computed from `data` above - not
-    // hardcoded, and not rendered at all until there's real data to show)
-    setTimeout(() => {
+    // The line chart needs its canvas laid out in the DOM before it can
+    // measure it (getBoundingClientRect), so it can't be drawn until after
+    // this HTML exists on the page - but swapping mainEl straight to that
+    // HTML would show an empty canvas/table for a moment before the chart
+    // and table fill in. Instead, build the dashboard hidden-but-laid-out,
+    // draw everything into it, then reveal it in one atomic swap - the
+    // loading spinner stays up the whole time and nothing half-drawn is
+    // ever visible.
+    const staging = document.createElement("div");
+    staging.style.visibility = "hidden";
+    staging.innerHTML = dashboardHtml;
+    mainEl.appendChild(staging);
+
+    requestAnimationFrame(() => {
       ChartRenderer.renderLineChart("rev-exp-canvas", BookkeepingView.monthlyTotals(data));
       ChartRenderer.renderDonutChart("category-donut-container", BookkeepingView.categoryBreakdown(data));
       DataTable.renderBookkeepingTable("bookkeeping-table-container", data);
-    }, 50);
+
+      mainEl.innerHTML = "";
+      staging.style.visibility = "";
+      mainEl.appendChild(staging);
+    });
 
     // Initialize RAG chat context
     RAGChat.init("bookkeeping");
