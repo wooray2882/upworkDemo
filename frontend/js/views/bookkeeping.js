@@ -236,27 +236,24 @@ window.BookkeepingView = {
     `;
 
     // The line chart needs its canvas laid out in the DOM before it can
-    // measure it (getBoundingClientRect), so it can't be drawn until after
-    // this HTML exists on the page - but swapping mainEl straight to that
-    // HTML would show an empty canvas/table for a moment before the chart
-    // and table fill in. Instead, build the dashboard hidden-but-laid-out,
-    // draw everything into it, then reveal it in one atomic swap - the
-    // loading spinner stays up the whole time and nothing half-drawn is
-    // ever visible.
-    const staging = document.createElement("div");
-    staging.style.visibility = "hidden";
-    staging.innerHTML = dashboardHtml;
-    mainEl.appendChild(staging);
-
-    requestAnimationFrame(() => {
-      ChartRenderer.renderLineChart("rev-exp-canvas", BookkeepingView.monthlyTotals(data));
-      ChartRenderer.renderDonutChart("category-donut-container", BookkeepingView.categoryBreakdown(data));
-      DataTable.renderBookkeepingTable("bookkeeping-table-container", data);
-
-      mainEl.innerHTML = "";
-      staging.style.visibility = "";
-      mainEl.appendChild(staging);
-    });
+    // measure it (getBoundingClientRect) - reading that property right
+    // after the innerHTML assignment below forces the browser to flush
+    // layout synchronously, so the canvas is measurable immediately with
+    // no need to wait a frame.
+    //
+    // This used to defer the chart/table draw to requestAnimationFrame,
+    // which caused a real, reproducible bug: render() returns before that
+    // callback fires, and the caller (a refresh after upload) immediately
+    // calls App.setViewRefreshing(false) right after render() returns -
+    // clearing the loading overlay before the deferred draw ever ran. If
+    // the tab was backgrounded at all during the upload wait (easy to do
+    // over several seconds), rAF is throttled/paused by the browser
+    // entirely, so the chart/table were left permanently blank until a
+    // hard refresh. Doing everything synchronously removes that race.
+    mainEl.innerHTML = dashboardHtml;
+    ChartRenderer.renderLineChart("rev-exp-canvas", BookkeepingView.monthlyTotals(data));
+    ChartRenderer.renderDonutChart("category-donut-container", BookkeepingView.categoryBreakdown(data));
+    DataTable.renderBookkeepingTable("bookkeeping-table-container", data);
 
     // Initialize RAG chat context
     RAGChat.init("bookkeeping");
