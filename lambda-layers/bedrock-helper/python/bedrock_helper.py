@@ -175,11 +175,21 @@ def index_for_rag(bucket: str, key: str, text: str, metadata: dict, knowledge_ba
     the knowledge base only ever reflects whatever was ingested once,
     manually, in the past - new uploads never show up in chat answers.
 
-    Best-effort and silent on failure: StartIngestionJob commonly throws
-    ConflictException when a job is already in flight (e.g. two uploads
-    close together), and a RAG sync hiccup shouldn't fail the postprocess
-    Lambda - the record is already durably saved to DynamoDB by the time
-    this runs, which is the part that actually matters."""
+    Bedrock only allows ONE ingestion job in flight per data source at a
+    time - StartIngestionJob throws ConflictException if another upload's
+    job is already running, which is common when a couple of uploads land
+    close together. A live test caught this causing a real, silent
+    permanent gap: the record's file was written to S3 fine, but with no
+    retry the vector index never picked it up, and the chat kept answering
+    from whatever was indexed before - looking "out of sync" indefinitely,
+    not just briefly. Retrying a few times with a short wait closes that
+    gap in the common case without adding much latency to the upload the
+    user is actually waiting on.
+
+    Still best-effort beyond the retries: a persistent RAG sync issue
+    shouldn't fail the postprocess Lambda - the record is already durably
+    saved to DynamoDB by the time this runs, which is what actually
+    matters for the record not to be lost."""
     if not bucket or not knowledge_base_id or not data_source_id:
         return
     try:
@@ -197,9 +207,21 @@ def index_for_rag(bucket: str, key: str, text: str, metadata: dict, knowledge_ba
             }).encode("utf-8"),
             ContentType="application/json",
         )
-        _bedrock_agent.start_ingestion_job(knowledgeBaseId=knowledge_base_id, dataSourceId=data_source_id)
     except Exception as exc:
-        print(f"RAG ingestion skipped (non-fatal): {exc}")
+        print(f"RAG summary write failed (non-fatal): {exc}")
+        return
+
+    for attempt in range(4):
+        try:
+            _bedrock_agent.start_ingestion_job(knowledgeBaseId=knowledge_base_id, dataSourceId=data_source_id)
+            return
+        except _bedrock_agent.exceptions.ConflictException:
+            if attempt < 3:
+                time.sleep(3)
+        except Exception as exc:
+            print(f"RAG ingestion skipped (non-fatal): {exc}")
+            return
+    print("RAG ingestion job still busy after retries - will be picked up by the next successful ingestion job")
 
 
 def read_s3_object(bucket: str, key: str) -> bytes:

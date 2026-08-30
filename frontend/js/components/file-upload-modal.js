@@ -229,6 +229,14 @@ window.FileUploadModal = (function () {
 
   const submit = async () => {
     setBusy(true);
+    // Blurs the page behind the modal for the ENTIRE upload + AI-processing
+    // + refetch duration, not just the tail-end refetch - that's the part
+    // that actually takes time (Bedrock extraction), and previously nothing
+    // signaled it was in progress once the modal's own per-file status was
+    // out of view. Cleared here on failure (modal stays open for retry) or
+    // by the caller's onComplete once fresh data is actually rendered.
+    if (window.App) App.setViewRefreshing(true);
+
     const pending = files.filter(f => f.status === "pending");
 
     // Small client-side concurrency cap so a large batch doesn't fire a
@@ -249,10 +257,16 @@ window.FileUploadModal = (function () {
       Modal.close();
     } else {
       setBusy(false);
+      if (window.App) App.setViewRefreshing(false);
     }
 
     if (succeeded.length > 0 && config.onComplete) {
       config.onComplete(succeeded.map(f => f.structuredResult));
+    } else if (window.App) {
+      // No onComplete to eventually clear the overlay (shouldn't happen in
+      // practice - every view passes one - but don't leave the page
+      // permanently blurred if it's ever missing).
+      App.setViewRefreshing(false);
     }
     if (failed.length > 0) {
       App.showToast(`${failed.length} file(s) failed - see the list for details.`);
