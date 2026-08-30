@@ -67,6 +67,35 @@ window.App = (function() {
     }
   };
 
+  // Blurs the current (stale) view behind a centered spinner while a
+  // background refetch is in flight - e.g. re-listing records right after
+  // an upload finishes processing. Used instead of swapping straight to
+  // new content (which can flash) or leaving stale data on screen with no
+  // indication a refresh is happening at all.
+  const setViewRefreshing = (isRefreshing) => {
+    const view = document.getElementById("view-content");
+    if (!view) return;
+    let overlay = document.getElementById("view-refresh-overlay");
+
+    if (isRefreshing) {
+      view.style.filter = "blur(4px)";
+      view.style.pointerEvents = "none";
+      view.style.userSelect = "none";
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "view-refresh-overlay";
+        overlay.style.cssText = "position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;";
+        overlay.innerHTML = `<div class="loading-spinner" style="width: 44px; height: 44px; border-width: 4px; margin: 0;"></div>`;
+        document.body.appendChild(overlay);
+      }
+    } else {
+      view.style.filter = "";
+      view.style.pointerEvents = "";
+      view.style.userSelect = "";
+      if (overlay) overlay.remove();
+    }
+  };
+
   const toggleApiDrawer = () => {
     const drawer = document.getElementById("api-drawer");
     if (drawer) {
@@ -128,7 +157,8 @@ window.App = (function() {
     toggleApiDrawer,
     toggleChatPanel,
     logApiExecution,
-    showToast
+    showToast,
+    setViewRefreshing
   };
 })();
 

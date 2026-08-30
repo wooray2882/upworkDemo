@@ -59,7 +59,7 @@ window.DocumentExtractView = {
    * Load real document records from DynamoDB via RealAPI
    */
   loadHistory: () => {
-    RealAPI.listDocuments()
+    return RealAPI.listDocuments()
       .then(records => {
         DocumentExtractView.history = records;
         DataTable.renderDocumentsTable("documents-table-container", records.map(DocumentExtractView.toRow));
@@ -102,9 +102,11 @@ window.DocumentExtractView = {
       description: "Upload invoices, receipts, or forms (PDF, image, .xlsx, or .csv). Multiple files at once are fine.",
       accept: ".pdf,image/*,.xlsx,.csv",
       submitFn: (s3Key) => RealAPI.extractDocumentFromS3(s3Key),
-      onComplete: (results) => {
+      onComplete: async (results) => {
         App.showToast(`Done! ${results.length} document(s) extracted.`);
-        DocumentExtractView.loadHistory();
+        App.setViewRefreshing(true);
+        await DocumentExtractView.loadHistory();
+        App.setViewRefreshing(false);
       }
     });
   },

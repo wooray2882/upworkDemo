@@ -299,9 +299,11 @@ window.BookkeepingView = {
       onComplete: async (results) => {
         const total = results.reduce((sum, r) => sum + (r.transaction_count || 0), 0);
         App.showToast(`Done! ${total} transaction(s) categorized.`);
+        App.setViewRefreshing(true);
         const batches = await RealAPI.listBookkeepingBatches();
         BookkeepingView.liveData = BookkeepingView.flattenBatches(batches);
         BookkeepingView.render();
+        App.setViewRefreshing(false);
       }
     });
   },

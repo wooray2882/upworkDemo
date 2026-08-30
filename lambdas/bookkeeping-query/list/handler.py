@@ -30,6 +30,7 @@ def lambda_handler(event, context):
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-store",
         },
         "body": json.dumps(items, default=_json_default),
     }

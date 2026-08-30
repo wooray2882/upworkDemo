@@ -40,8 +40,12 @@ window.RealAPI = (function () {
 
   // GETs a feature's stored DynamoDB records directly (plain Lambda proxy
   // integration, not Step Functions - see modules/feature/api-route.tf).
+  // cache: "no-store" is required - the Lambda response carries no
+  // Cache-Control header, so without this the browser can silently serve
+  // a stale cached response for this exact URL, which is exactly why a
+  // freshly-processed upload wouldn't show up without a hard refresh.
   const listRecords = async (routeName) => {
-    const response = await fetch(`${BASE_URL}/${routeName}`);
+    const response = await fetch(`${BASE_URL}/${routeName}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`GET /${routeName} failed: ${response.status}`);
     return response.json();
   };

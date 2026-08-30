@@ -187,10 +187,12 @@ window.ReviewAnalyzerView = {
       onComplete: async (results) => {
         const total = results.reduce((sum, r) => sum + (r.review_count || 0), 0);
         App.showToast(`Done! ${total} review(s) analyzed.`);
+        App.setViewRefreshing(true);
         const batches = await RealAPI.listReviewBatches();
         ReviewAnalyzerView.rawBatches = batches;
         ReviewAnalyzerView.liveData = ReviewAnalyzerView.flattenBatches(batches);
         ReviewAnalyzerView.render();
+        App.setViewRefreshing(false);
       }
     });
   },
