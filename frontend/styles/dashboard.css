@@ -195,11 +195,11 @@
 .doc-real-preview-container {
   width: 100%;
   height: 100%;
-  min-height: 480px;
+  min-height: 720px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
   background: #0b0f19;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -209,18 +209,24 @@
 .doc-real-preview-iframe {
   width: 100%;
   height: 100%;
-  min-height: 520px;
+  min-height: 720px;
   border: none;
   background: #ffffff;
 }
 
+/* Previously max-width/max-height at the image's own intrinsic size,
+   centered with a lot of empty margin around it inside a much larger
+   container - a typical portrait invoice photo ended up small and hard
+   to read. width/height 100% + object-fit: contain makes the image
+   fill the actual container box (letterboxed only as needed to keep its
+   aspect ratio), scaling up to use the real estate instead of floating
+   small in the middle of it. */
 .doc-real-preview-img {
-  max-width: 100%;
-  max-height: 600px;
+  width: 100%;
+  height: 100%;
+  min-height: 720px;
   object-fit: contain;
   border-radius: 4px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  margin: auto;
   display: block;
 }
 

@@ -131,7 +131,7 @@ window.DocumentExtractView = {
       Modal.open({
         title: result?.document_type || "Extracted Document",
         bodyHtml: `
-          <div class="doc-modal-body" id="doc-preview-container" style="gap: 20px; min-height: 520px;">
+          <div class="doc-modal-body" id="doc-preview-container" style="gap: 20px; min-height: 720px;">
             <!-- Left Side: Real Document Preview Pane -->
             <div id="doc-preview-pane" class="doc-real-preview-container" style="border: 1px solid var(--border-glass);">
               <div style="text-align: center; color: var(--text-muted); padding: 24px;">
@@ -166,7 +166,7 @@ window.DocumentExtractView = {
         const ext = s3Key.split(".").pop().toLowerCase();
 
         if (ext === "pdf") {
-          pane.innerHTML = `<iframe src="${url}" class="doc-real-preview-iframe" style="width: 100%; height: 100%; min-height: 520px; border: none; border-radius: var(--radius-md);" title="Document PDF Preview"></iframe>`;
+          pane.innerHTML = `<iframe src="${url}" class="doc-real-preview-iframe" style="width: 100%; height: 100%; min-height: 720px; border: none; border-radius: var(--radius-md);" title="Document PDF Preview"></iframe>`;
         } else if (["xlsx", "csv"].includes(ext)) {
           pane.innerHTML = `
             <div style="padding: 32px 24px; font-size: 0.85rem; color: var(--text-muted); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px;">
@@ -181,11 +181,11 @@ window.DocumentExtractView = {
             </div>
           `;
         } else {
-          pane.innerHTML = `
-            <div style="padding: 16px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-              <img src="${url}" class="doc-real-preview-img" style="max-width: 100%; max-height: 520px; object-fit: contain; border-radius: var(--radius-md);" alt="Document image preview">
-            </div>
-          `;
+          // No padded/centered wrapper here - that plus the old
+          // max-width/max-height styling was exactly what left the image
+          // small with wasted space around it. The class now stretches to
+          // fill the pane and lets object-fit handle the aspect ratio.
+          pane.innerHTML = `<img src="${url}" class="doc-real-preview-img" style="border-radius: var(--radius-md);" alt="Document image preview">`;
         }
       }).catch(err => {
         const pane = document.getElementById("doc-preview-pane");
